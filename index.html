@@ -87,10 +87,10 @@ em{font-style:italic}
   padding:11px 22px;backdrop-filter:blur(9px);background:rgba(242,245,247,.82);border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s;transform:translateY(-100%);transition:transform .35s ease,border-color .3s}
 #topbar.show{transform:translateY(0);border-bottom:1px solid var(--line)}
 #topbar .brand{font-family:var(--serif-display);font-weight:600;font-size:.98rem;letter-spacing:-.01em}
-#topbar nav{display:flex;gap:2px;font-family:var(--mono);font-size:.72rem;letter-spacing:.04em}
-#topbar nav a{color:var(--ink-soft);text-decoration:none;padding:5px 9px;border-radius:7px;transition:background .2s,color .2s}
+#topbar nav{display:flex;gap:1px;font-family:var(--mono);font-size:.68rem;letter-spacing:.02em}
+#topbar nav a{color:var(--ink-soft);text-decoration:none;padding:5px 7px;border-radius:7px;transition:background .2s,color .2s}
 #topbar nav a:hover,#topbar nav a.active{background:var(--paper-sunk);color:var(--ink)}
-@media (max-width:820px){#topbar nav{display:none}}
+@media (max-width:1080px){#topbar nav{display:none}}
 
 /* ---------- hero ---------- */
 #hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;padding:96px 0 60px}
@@ -256,6 +256,78 @@ input[type=range]:focus-visible{box-shadow:0 0 0 3px var(--post-bg)}
 .takeaways li b{font-weight:600}
 .takeaways li .sub{display:block;color:var(--ink-soft);font-size:.94em;margin-top:.2em}
 
+/* ---------- evidence ruler (odds form) ---------- */
+.ruler{position:relative;height:130px;margin:30px 4px 4px}
+.rul-line{position:absolute;left:0;right:0;top:72px;height:2px;background:var(--line-strong);border-radius:2px}
+.rul-tick{position:absolute;top:66px;width:1px;height:14px;background:var(--line-strong)}
+.rul-tick span{position:absolute;top:17px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.64rem;color:var(--ink-soft);white-space:nowrap;text-align:center;line-height:1.35}
+.rul-tick span small{display:block;color:var(--ink-faint);font-size:.85em}
+.rul-arrow{position:absolute;top:70px;height:6px;background:var(--post);opacity:.45;border-radius:3px;transition:left .5s cubic-bezier(.4,0,.15,1),width .5s cubic-bezier(.4,0,.15,1)}
+.rul-mark{position:absolute;top:40px;width:2.5px;height:50px;border-radius:2px;transition:left .5s cubic-bezier(.4,0,.15,1)}
+.rul-mark.pri{background:var(--prior)}
+.rul-mark.pos{background:var(--post)}
+.rul-mark .flag{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.64rem;letter-spacing:.04em;text-transform:uppercase;font-weight:600;white-space:nowrap}
+.rul-mark.pri .flag{color:var(--prior-text)}
+.rul-mark.pos .flag{color:var(--post-text)}
+.odds-readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:22px}
+.odds-readouts .readout{margin:0}
+.odds-readouts .big{font-size:1.7rem}
+
+/* ---------- evidence lab ---------- */
+.lab-layout{display:grid;grid-template-columns:1fr 290px;gap:28px;align-items:start}
+@media (max-width:820px){.lab-layout{grid-template-columns:1fr}}
+#labCanvas{width:100%;height:auto;display:block;border-radius:10px;background:var(--paper-sunk)}
+.lab-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.lab-btn{font-family:var(--mono);font-size:.78rem;border:1px solid var(--line-strong);background:var(--paper);padding:10px 14px;border-radius:9px;cursor:pointer;transition:.2s;font-weight:600}
+.lab-btn.pos{color:var(--like-text);border-color:var(--like)} .lab-btn.pos:hover{background:var(--like);color:#fff}
+.lab-btn.neg{color:var(--wrong-text);border-color:var(--wrong)} .lab-btn.neg:hover{background:var(--wrong);color:#fff}
+.lab-btn.reset:hover{background:var(--ink);color:var(--paper)}
+.lab-log{margin-top:14px;font-family:var(--mono);font-size:.74rem;line-height:1.9;color:var(--ink-soft);max-height:170px;overflow-y:auto;border-top:1px solid var(--line);padding-top:10px}
+.lab-log b{color:var(--post-text)}
+
+/* ---------- monty hall ---------- */
+.doors{display:flex;gap:18px;justify-content:center;margin:8px 0 20px;flex-wrap:wrap}
+.door{width:112px;height:152px;border-radius:12px 12px 7px 7px;border:2px solid var(--line-strong);background:linear-gradient(#F9FBFC,#E9EFF3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .18s,border-color .18s,box-shadow .18s;font-family:var(--serif-display)}
+.door .dn{font-size:1.7rem;font-weight:600;color:var(--ink-soft)}
+.door .dc{font-size:2.5rem;line-height:1;min-height:1em}
+.door:hover:not(:disabled):not(.opened){transform:translateY(-4px);border-color:var(--post)}
+.door.picked{border-color:var(--post);box-shadow:0 0 0 3px var(--post-bg)}
+.door.opened{background:var(--paper-sunk);border-style:dashed;cursor:default}
+.door.win{border-color:var(--like);box-shadow:0 0 0 3px var(--like-bg)}
+.door:disabled{cursor:default}
+.monty-msg{text-align:center;font-family:var(--mono);font-size:.84rem;color:var(--ink);min-height:2.6em;margin-bottom:10px}
+.monty-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:44px}
+.tally{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+@media (max-width:560px){.tally{grid-template-columns:1fr}}
+.tally-card{background:var(--paper-sunk);border-radius:12px;padding:14px 16px}
+.tally-card .th{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+.tally-bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin:6px 0}
+.tally-bar i{display:block;height:100%;border-radius:6px;background:var(--post);transition:width .4s;width:0}
+.tally-card.sw .tally-bar i{background:var(--like)}
+.tally-card .tn{font-family:var(--mono);font-size:.78rem;color:var(--ink-soft)}
+.tally-card .tn b{font-size:1.05rem;color:var(--ink)}
+
+/* ---------- quiz ---------- */
+.qcard{border:1px solid var(--line);border-radius:16px;background:var(--paper-raised);box-shadow:var(--shadow);padding:22px 26px;margin:16px 0}
+.qcard .qn{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--post-text);text-transform:uppercase;margin-bottom:.5em}
+.qcard .qq{font-size:1.02em;margin:0 0 1em;font-weight:500}
+.qopts{display:flex;flex-direction:column;gap:8px}
+.qopt{text-align:left;font-family:var(--serif-body);font-size:.95em;border:1px solid var(--line-strong);background:var(--paper);border-radius:10px;padding:11px 15px;cursor:pointer;transition:.18s;color:var(--ink);line-height:1.4}
+.qopt:hover:not(:disabled){border-color:var(--post);background:var(--post-bg)}
+.qopt.correct{border-color:var(--like);background:var(--like-bg);color:var(--like-text);font-weight:600}
+.qopt.wrong{border-color:var(--wrong);background:var(--wrong-bg);color:var(--wrong-text)}
+.qopt:disabled{cursor:default;opacity:.85}
+.qwhy{display:none;margin-top:14px;padding:13px 16px;border-radius:10px;background:var(--paper-sunk);font-size:.92em;color:var(--ink-soft)}
+.qwhy.show{display:block;animation:fade .35s ease}
+.qscore{text-align:center;font-family:var(--mono);font-size:.85rem;color:var(--ink-soft);margin-top:20px}
+.qscore b{color:var(--post-text);font-size:1.15rem}
+
+/* ---------- glossary ---------- */
+.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--line);margin:1.6em 0}
+.gl{background:var(--paper-raised);padding:14px 18px}
+.gl dt{font-family:var(--mono);font-weight:600;font-size:.82rem;margin-bottom:3px}
+.gl dd{margin:0;font-size:.86em;color:var(--ink-soft);line-height:1.45}
+
 /* ---------- deep dive: history timeline ---------- */
 .timeline{position:relative;margin:1.8em 0}
 .timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:14px;width:2px;background:var(--line)}
@@ -301,8 +373,12 @@ footer a{color:var(--post-text)}
     <a href="#grid">Grid</a>
     <a href="#examples">Examples</a>
     <a href="#calculator">Calculator</a>
+    <a href="#odds">Odds</a>
+    <a href="#lab">Lab</a>
+    <a href="#monty">Monty</a>
     <a href="#fallacies">Fallacies</a>
     <a href="#deeper">Deeper</a>
+    <a href="#quiz">Quiz</a>
     <a href="#takeaways">Takeaways</a>
   </nav>
 </div>
@@ -587,12 +663,176 @@ footer a{color:var(--post-text)}
 
 <div class="divider"></div>
 
-<!-- ========================= 6. FALLACIES ========================= -->
+<!-- ========================= 6. ODDS FORM ========================= -->
+<section id="odds">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">06 — The shortcut</p>
+      <h2>The gambler's form: odds and the evidence ruler</h2>
+      <p class="lede">The fraction you've been computing has a sleeker twin. Rewrite everything in <strong>odds</strong> — the ratio of “for” to “against” — and Bayes' theorem collapses into a single multiplication.</p>
+    </div>
+
+    <p>Odds and probability say the same thing in different accents: a probability of 75% is odds of <span class="term t-evid">3 : 1</span> (three ways for, one against). Now define the <strong>likelihood ratio</strong> — how many times more often the evidence appears when the hypothesis is true than when it's false:</p>
+
+    <div class="eq-wrap">
+      <div class="eq">
+        <span class="c-post">posterior odds</span>
+        <span class="op">=</span>
+        <span class="c-prior">prior odds</span>
+        <span class="op">×</span>
+        <span class="frac"><span class="num"><span class="c-like">P(E&nbsp;|&nbsp;H)</span></span><span class="den"><span class="c-like">P(E&nbsp;|&nbsp;¬H)</span></span></span>
+      </div>
+      <span class="eq-label c-like">that fraction is the likelihood ratio, LR</span>
+    </div>
+
+    <p>That's the entire theorem. No denominator, no normalizing — the awkward <span class="c-evid">P(E)</span> cancels itself out. A test with 90% sensitivity and a 10% false-alarm rate has LR&nbsp;=&nbsp;90/10&nbsp;=&nbsp;<strong>9</strong>: a positive result makes any hypothesis exactly nine times more likely, in odds, no matter where it started. The evidence has one fixed strength; only your starting point varies.</p>
+
+    <p>And it gets better. Take logarithms and multiplication becomes <em>addition</em>: every piece of evidence simply pushes you a fixed distance along a ruler of belief. This is precisely the trick Turing used at Bletchley Park — he measured evidence in <strong>decibans</strong>, where 10&nbsp;db means an LR of 10, 20&nbsp;db means 100, and each independent clue adds its decibans to the pile. Slide the two controls and watch evidence move you:</p>
+
+    <div class="module">
+      <div class="module-head">
+        <h3>The evidence ruler</h3>
+        <span class="tag">log-odds · decibans</span>
+      </div>
+      <div class="module-body">
+        <div class="control" style="margin-bottom:18px">
+          <label for="odP">Prior probability <span class="val" id="odPv">1%</span></label>
+          <input type="range" class="range-prior" id="odP" min="0.1" max="99" step="0.1" value="1">
+        </div>
+        <div class="control">
+          <label for="odLR">Strength of evidence <span class="val" id="odLRv">LR = 9×</span></label>
+          <input type="range" class="range-like" id="odLR" min="-2" max="2" step="0.01" value="0.954">
+        </div>
+        <div class="ruler" id="oddsRuler">
+          <div class="rul-line"></div>
+          <div class="rul-arrow" id="rulArrow"></div>
+          <div class="rul-mark pri" id="rulPri"><span class="flag">prior</span></div>
+          <div class="rul-mark pos" id="rulPos"><span class="flag">posterior</span></div>
+        </div>
+        <div class="odds-readouts">
+          <div class="readout"><div class="cap">Evidence shift</div><div class="big" id="odShift" style="font-size:1.7rem">+9.5 db</div></div>
+          <div class="readout"><div class="cap">Prior → posterior odds</div><div class="big" id="odOdds" style="font-size:1.25rem;padding-top:.25em">1:99 → 1:11</div></div>
+          <div class="readout"><div class="cap">Posterior probability</div><div class="big" id="odPost" style="font-size:1.7rem">8.3%</div></div>
+        </div>
+        <p style="font-size:.9em;color:var(--ink-soft);margin:18px 0 0">Drag the evidence slider left of center and the LR drops below 1 — evidence <em>against</em>, pushing you down the ruler by the same rule. Notice what the log scale reveals: moving from 50% to 91% takes exactly as much evidence as moving from 91% to 99.1%. Extraordinary claims sit far down the ruler, which is why they demand extraordinary evidence — not as a slogan, but as arithmetic.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 7. EVIDENCE LAB ========================= -->
+<section id="lab">
+  <div class="wide">
+    <div class="section-head" style="max-width:var(--measure);margin-left:auto;margin-right:auto">
+      <p class="section-num">07 — Evidence over time</p>
+      <h2>The evidence lab: belief as a trajectory</h2>
+      <p class="lede">Real inquiry rarely stops at one clue. The Bayesian move is to <strong>chain</strong> updates: today's posterior becomes tomorrow's prior, and belief traces a path. Run the experiment yourself — set a starting belief, then stack up positive and negative results and watch where the path goes.</p>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <h3>Sequential updating</h3>
+        <span class="tag">posterior in, prior out</span>
+      </div>
+      <div class="module-body">
+        <div class="lab-layout">
+          <div>
+            <canvas id="labCanvas" width="820" height="330" role="img" aria-label="Chart of belief probability after each successive test result"></canvas>
+            <div class="lab-btns">
+              <button class="lab-btn pos" id="labPos">+ Positive result</button>
+              <button class="lab-btn neg" id="labNeg">+ Negative result</button>
+              <button class="lab-btn reset" id="labReset">Reset</button>
+            </div>
+            <div class="lab-log" id="labLog"></div>
+          </div>
+          <div class="controls">
+            <div class="control">
+              <label for="labPrior">Starting prior <span class="val" id="labPriorV">1%</span></label>
+              <input type="range" class="range-prior" id="labPrior" min="0.1" max="99" step="0.1" value="1">
+            </div>
+            <div class="control">
+              <label for="labSens">Test sensitivity <span class="val" id="labSensV">90%</span></label>
+              <input type="range" class="range-like" id="labSens" min="50" max="99.9" step="0.1" value="90">
+            </div>
+            <div class="control">
+              <label for="labSpec">Test specificity <span class="val" id="labSpecV">90%</span></label>
+              <input type="range" class="range-like" id="labSpec" min="50" max="99.9" step="0.1" value="90">
+            </div>
+            <div class="readout">
+              <div class="cap">Current belief</div>
+              <div class="big" id="labNow">1%</div>
+              <div class="expl">Each result multiplies the odds by its likelihood ratio. Independent evidence compounds.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap" style="padding-top:8px">
+      <p>Try the classic sequence: prior at 1%, test at 90/90, then press <strong>+ Positive</strong> three times. One positive lifts you only to 8% — but the second reaches ~45%, and the third ~88%. Each result adds the same +9.5&nbsp;db; it's your <em>position on the ruler</em> that makes the same evidence feel weak or decisive. This is why medicine confirms surprising screens with follow-up tests, and why science trusts replication over any single dramatic study. Mix in a negative and watch belief fall by the mirror-image rule — honest updating runs in both directions.</p>
+      <p>One caution the mathematics insists on: the multiplication is only valid if the pieces of evidence are <strong>independent</strong>. Re-running the <em>same</em> flawed test — same reagent, same bias — doesn't add new decibans; it repeats old ones. Ten copies of one rumor is one rumor.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 8. MONTY HALL ========================= -->
+<section id="monty">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">08 — Play it</p>
+      <h2>Monty Hall: the puzzle that fooled a thousand PhDs</h2>
+      <p class="lede">Three doors. Behind one, a car; behind the others, goats. You pick a door. The host — who <em>knows</em> where the car is — opens a different door, always revealing a goat, and offers you a switch. When a magazine columnist wrote that you should take it, thousands of readers, many with doctorates, wrote in to insist she was wrong. She wasn't. Play, and see.</p>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <h3>The game</h3>
+        <span class="tag">host always reveals a goat</span>
+      </div>
+      <div class="module-body">
+        <div class="monty-msg" id="montyMsg">Pick a door.</div>
+        <div class="doors" id="montyDoors">
+          <button class="door" data-d="0"><span class="dn">1</span><span class="dc"></span></button>
+          <button class="door" data-d="1"><span class="dn">2</span><span class="dc"></span></button>
+          <button class="door" data-d="2"><span class="dn">3</span><span class="dc"></span></button>
+        </div>
+        <div class="monty-actions" id="montyActions"></div>
+        <div class="tally">
+          <div class="tally-card st">
+            <div class="th">Strategy: stay</div>
+            <div class="tally-bar"><i id="stBar"></i></div>
+            <div class="tn"><b id="stPct">—</b> <span id="stCount">(0 games)</span></div>
+          </div>
+          <div class="tally-card sw">
+            <div class="th">Strategy: switch</div>
+            <div class="tally-bar"><i id="swBar"></i></div>
+            <div class="tn"><b id="swPct">—</b> <span id="swCount">(0 games)</span></div>
+          </div>
+        </div>
+        <div class="lab-btns" style="justify-content:center;margin-top:16px">
+          <button class="lab-btn" id="montySim">Simulate 1,000 games of each</button>
+        </div>
+      </div>
+    </div>
+
+    <h3>Why switching wins — in Bayesian dress</h3>
+    <p>Your first pick has a <span class="c-prior">1⁄3 prior</span> of being right. Then comes evidence: the host opens a particular door. Here's the move almost everyone misses — that action is <em>more probable in some worlds than others</em>. If the car is behind your door, the host had two goat doors to choose from, so the one he opened had likelihood <span class="c-like">1⁄2</span>. If the car is behind the other unopened door, he was <em>forced</em> — likelihood <span class="c-like">1</span>. An LR of 2 in favor of “the car is behind the other door,” applied to its 2-to-1... run it through and the posterior lands at exactly <span class="c-post">2⁄3 for switching</span>, 1⁄3 for staying.</p>
+    <p>The deep lesson isn't about game shows. It's that <strong>evidence includes how the evidence was produced</strong>. A host who opens doors at random (and just happened to reveal a goat) gives you no reason to switch — same open door, different likelihoods, different posterior. Who selected what you're seeing, and by what rule, is part of the data. That principle has a modern name in science — <em>selection effects</em> — and forgetting it is how survivorship bias, cherry-picked studies, and too-good-to-be-true headlines get their power.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 9. FALLACIES ========================= -->
 <section id="fallacies">
   <div class="wrap">
     <div class="section-head">
-      <p class="section-num">06 — When it's ignored</p>
-      <h2>Four ways good minds go wrong</h2>
+      <p class="section-num">09 — When it's ignored</p>
+      <h2>Five ways good minds go wrong</h2>
       <p class="lede">Every one of these mistakes is what Bayes' theorem looks like when a piece of it is dropped. They're not signs of stupidity — they're the default settings of human intuition. Naming them is how you catch yourself.</p>
     </div>
 
@@ -647,6 +887,18 @@ footer a{color:var(--post-text)}
         <p style="margin-bottom:0">In Bayesian terms, the extra detail raises the <span class="c-like">likelihood</span> — the story fits — while quietly shrinking the <span class="c-prior">prior</span>, since fewer people satisfy two conditions than one. Intuition feels the first pull and misses the second.</p>
       </div>
     </details>
+
+    <details class="fallacy">
+      <summary><span class="fnum">F5</span><span class="ftitle">Conservatism — updating too little</span><span class="chev">›</span></summary>
+      <div class="fbody">
+        <p>The mirror image of every fallacy above. Sometimes we don't over-read evidence — we <em>under</em>-read it, clinging to the prior when the data has already spoken. Psychologists demonstrated this with a famous experiment using two bags of poker chips: one mostly red, one mostly blue. Draw chips one at a time from a hidden bag and ask people how confident they are about which bag it is.</p>
+        <div class="wrong-right">
+          <div class="wr-card wrong"><div class="lab">What people do</div><p>After a run of draws that should make the answer nearly certain, people report middling confidence — around 70% — revising far more timidly than the evidence warrants.</p></div>
+          <div class="wr-card right"><div class="lab">What the evidence says</div><p>Each draw carries a fixed likelihood ratio, and independent draws <em>multiply</em>. A handful of consistent draws can push the true posterior past 95% while intuition is still hedging.</p></div>
+        </div>
+        <p style="margin-bottom:0">Try it in the <a href="#lab">evidence lab</a>: a few stacked results move belief much faster than feels natural. Being a good Bayesian cuts both ways — it forbids overreacting to one flashy clue, <em>and</em> it forbids shrugging off a steady accumulation. The prior is a starting point, not a fortress.</p>
+      </div>
+    </details>
   </div>
 </section>
 
@@ -656,7 +908,7 @@ footer a{color:var(--post-text)}
 <section id="deeper">
   <div class="wrap">
     <div class="section-head">
-      <p class="section-num">07 — In the world</p>
+      <p class="section-num">10 — In the world</p>
       <h2>Where Bayes actually lives</h2>
       <p class="lede">You now have the whole machine: the equation, the intuition behind it, the traps that spring when it's ignored. This last section is for the curious — where this one idea came from, how far it reaches into working science, and why philosophers have argued over it for two centuries. None of it is required to <em>use</em> Bayes' theorem. All of it is worth knowing.</p>
     </div>
@@ -770,12 +1022,27 @@ footer a{color:var(--post-text)}
 
 <div class="divider"></div>
 
-<!-- ========================= 8. TAKEAWAYS ========================= -->
+<!-- ========================= 11. QUIZ ========================= -->
+<section id="quiz">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">11 — Prove it to yourself</p>
+      <h2>Six questions, no stakes</h2>
+      <p class="lede">The real test of understanding is whether the traps stop working on you. Each question below is one of this page's ideas in disguise. Answer, and you'll get the reasoning either way.</p>
+    </div>
+    <div id="quizMount"></div>
+    <div class="qscore" id="quizScore"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 12. TAKEAWAYS ========================= -->
 <section id="takeaways">
   <div class="wrap">
     <div class="section-head">
-      <p class="section-num">08 — Carry this with you</p>
-      <h2>Seven things worth keeping</h2>
+      <p class="section-num">12 — Carry this with you</p>
+      <h2>Eight things worth keeping</h2>
     </div>
     <ol class="takeaways">
       <li><b>Evidence updates belief; it rarely replaces it.</b><span class="sub">The posterior is the prior <em>adjusted</em> by evidence — not the evidence taken at face value.</span></li>
@@ -785,8 +1052,25 @@ footer a{color:var(--post-text)}
       <li><b>An accurate test is not an accurate answer.</b><span class="sub">When the base rate is low, most positives are false. Accuracy and predictive value are not the same quantity.</span></li>
       <li><b>Independent evidence multiplies.</b><span class="sub">A second, independent test that also comes back positive lets you feed one posterior in as the next prior — and belief compounds.</span></li>
       <li><b>When in doubt, count a crowd of 1,000.</b><span class="sub">Translate every probability into natural frequencies and the answer usually becomes obvious without any algebra at all.</span></li>
+      <li><b>Odds make it easy: multiply by the likelihood ratio.</b><span class="sub">Posterior odds = prior odds × LR. In log-odds, evidence simply <em>adds</em> — which is why extraordinary claims, sitting far down the ruler, require extraordinary evidence.</span></li>
     </ol>
     <p style="margin-top:2em">Bayes' theorem isn't really about tests or trials or cabs. It's a discipline for holding beliefs honestly: stating what you thought before, saying out loud how much the evidence should count, and letting those two things — not your first impression — decide what you believe next. That's the whole art of changing your mind well.</p>
+
+    <h3>The vocabulary, on one card</h3>
+    <dl class="glossary">
+      <div class="gl"><dt class="c-prior">Prior — P(H)</dt><dd>Your belief before the evidence; often just the base rate.</dd></div>
+      <div class="gl"><dt class="c-post">Posterior — P(H | E)</dt><dd>Your belief after weighing the evidence. Tomorrow's prior.</dd></div>
+      <div class="gl"><dt class="c-like">Likelihood — P(E | H)</dt><dd>How probable the evidence is if the hypothesis is true.</dd></div>
+      <div class="gl"><dt class="c-like">False-alarm rate — P(E | ¬H)</dt><dd>How often the same evidence appears when the hypothesis is false.</dd></div>
+      <div class="gl"><dt class="c-prior">Base rate</dt><dd>How common something is in the population — the usual source of a prior.</dd></div>
+      <div class="gl"><dt class="c-like">Sensitivity</dt><dd>Share of true cases a test catches; its true-positive rate.</dd></div>
+      <div class="gl"><dt class="c-like">Specificity</dt><dd>Share of non-cases a test correctly clears; 1 − specificity is the false-alarm rate.</dd></div>
+      <div class="gl"><dt class="c-like">Likelihood ratio (LR)</dt><dd>P(E | H) ÷ P(E | ¬H): the strength of a piece of evidence, independent of any prior.</dd></div>
+      <div class="gl"><dt class="c-evid">Odds</dt><dd>Probability restated as for-to-against: 75% is 3 : 1. Bayes in odds form is one multiplication.</dd></div>
+      <div class="gl"><dt class="c-post">Deciban</dt><dd>Turing's unit of evidence: 10 × log₁₀(LR). Independent clues add their decibans.</dd></div>
+      <div class="gl"><dt class="c-evid">Natural frequencies</dt><dd>Probabilities restated as counts of people — the format human intuition handles best.</dd></div>
+      <div class="gl"><dt class="c-evid">Conditional probability</dt><dd>P(A | B): the probability of A given that B holds. The bar always reads “given.”</dd></div>
+    </dl>
   </div>
 </section>
 
@@ -1151,6 +1435,250 @@ footer a{color:var(--post-text)}
     });
   });
   updateCalc(false);
+
+  /* ============================================================
+     ODDS FORM — THE EVIDENCE RULER
+     ============================================================ */
+  (function(){
+    var odP=$("#odP"), odLR=$("#odLR");
+    if(!odP) return;
+    var odPv=$("#odPv"), odLRv=$("#odLRv"), odShift=$("#odShift"), odOdds=$("#odOdds"), odPost=$("#odPost");
+    var rulPri=$("#rulPri"), rulPos=$("#rulPos"), rulArrow=$("#rulArrow"), ruler=$("#oddsRuler");
+    // build ticks -40..40 db with probability labels
+    var tickProbs={"-40":"0.01%","-30":"0.1%","-20":"1%","-10":"9%","0":"50%","10":"91%","20":"99%","30":"99.9%","40":"99.99%"};
+    for(var d=-40;d<=40;d+=10){
+      var t=document.createElement("div");
+      t.className="rul-tick";
+      t.style.left=((d+40)/80*100)+"%";
+      t.innerHTML="<span>"+tickProbs[String(d)]+"<small>"+(d>0?"+":"")+d+" db</small></span>";
+      ruler.appendChild(t);
+    }
+    function dbOf(odds){return 10*Math.log10(odds);}
+    function posOf(db){return Math.max(0,Math.min(100,(db+40)/80*100));}
+    function fmtOdds(o){
+      if(o>=1){ return o>=100?Math.round(o)+":1":(o>=10?o.toFixed(0)+":1":o.toFixed(1)+":1"); }
+      var inv=1/o; return "1:"+(inv>=100?Math.round(inv):(inv>=10?inv.toFixed(0):inv.toFixed(1)));
+    }
+    function upd(){
+      var p=parseFloat(odP.value)/100;
+      var lrExp=parseFloat(odLR.value), LR=Math.pow(10,lrExp);
+      odPv.textContent=(parseFloat(odP.value)).toFixed(parseFloat(odP.value)<1?1:(parseFloat(odP.value)<10?1:0))+"%";
+      odLRv.textContent="LR = "+(LR>=1?(LR>=10?LR.toFixed(0):LR.toFixed(1))+"×":LR.toFixed(2)+"×");
+      var priorOdds=p/(1-p), postOdds=priorOdds*LR, post=postOdds/(1+postOdds);
+      var d1=dbOf(priorOdds), shift=10*lrExp, d2=d1+shift;
+      var x1=posOf(d1), x2=posOf(d2);
+      rulPri.style.left=x1+"%"; rulPos.style.left=x2+"%";
+      rulArrow.style.left=Math.min(x1,x2)+"%";
+      rulArrow.style.width=Math.abs(x2-x1)+"%";
+      odShift.textContent=(shift>=0?"+":"")+shift.toFixed(1)+" db";
+      odShift.style.color=shift>=0?"var(--like-text)":"var(--wrong-text)";
+      odOdds.textContent=fmtOdds(priorOdds)+" → "+fmtOdds(postOdds);
+      odPost.textContent=pct(post);
+    }
+    odP.addEventListener("input",upd); odLR.addEventListener("input",upd);
+    upd();
+  })();
+
+  /* ============================================================
+     EVIDENCE LAB — SEQUENTIAL UPDATING
+     ============================================================ */
+  (function(){
+    var cv=$("#labCanvas"); if(!cv) return;
+    var cx=cv.getContext("2d");
+    var labPrior=$("#labPrior"), labSens=$("#labSens"), labSpec=$("#labSpec");
+    var labPriorV=$("#labPriorV"), labSensV=$("#labSensV"), labSpecV=$("#labSpecV");
+    var labNow=$("#labNow"), labLog=$("#labLog");
+    var hist=[], labels=[];
+    var css2=getComputedStyle(document.documentElement);
+    var C={post:css2.getPropertyValue("--post").trim(), postbg:css2.getPropertyValue("--post-bg").trim(),
+           line:css2.getPropertyValue("--line-strong").trim(), faint:css2.getPropertyValue("--ink-faint").trim(),
+           prior:css2.getPropertyValue("--prior").trim()};
+    function reset(){
+      var p=parseFloat(labPrior.value)/100;
+      hist=[p]; labels=["start"];
+      labLog.innerHTML="Step 0 · starting prior <b>"+pct(p)+"</b>";
+      draw(); labNow.textContent=pct(p);
+    }
+    function add(positive){
+      var sens=parseFloat(labSens.value)/100, spec=parseFloat(labSpec.value)/100;
+      var LR = positive ? sens/Math.max(1-spec,1e-4) : (1-sens)/Math.max(spec,1e-4);
+      var p=hist[hist.length-1];
+      var odds=(p/(1-p))*LR, np=odds/(1+odds);
+      hist.push(np); labels.push(positive?"+":"−");
+      var db=10*Math.log10(LR);
+      labLog.innerHTML+= "<br>Step "+(hist.length-1)+" · "+(positive?"positive":"negative")+" ("+(db>=0?"+":"")+db.toFixed(1)+" db) — "+pct(p)+" → <b>"+pct(np)+"</b>";
+      labLog.scrollTop=labLog.scrollHeight;
+      labNow.textContent=pct(np);
+      draw();
+    }
+    function draw(){
+      var W=cv.width,H=cv.height, L=52,R=18,T=18,B=38;
+      var iw=W-L-R, ih=H-T-B;
+      cx.clearRect(0,0,W,H);
+      // gridlines
+      cx.font="11px 'Spline Sans Mono',monospace"; cx.fillStyle=C.faint; cx.strokeStyle=C.line; cx.lineWidth=1;
+      [0,25,50,75,100].forEach(function(g){
+        var y=T+ih*(1-g/100);
+        cx.beginPath(); cx.moveTo(L,y); cx.lineTo(W-R,y);
+        cx.setLineDash(g===50?[]:[3,4]); cx.stroke(); cx.setLineDash([]);
+        cx.fillText(g+"%", 12, y+4);
+      });
+      var steps=Math.max(6,hist.length-1);
+      function X(i){return L+iw*(i/steps);}
+      function Y(p){return T+ih*(1-p);}
+      // area + line
+      cx.beginPath();
+      hist.forEach(function(p,i){ i===0?cx.moveTo(X(i),Y(p)):cx.lineTo(X(i),Y(p)); });
+      cx.strokeStyle=C.post; cx.lineWidth=3; cx.lineJoin="round"; cx.stroke();
+      // fill under
+      cx.lineTo(X(hist.length-1),Y(0)); cx.lineTo(X(0),Y(0)); cx.closePath();
+      cx.fillStyle=C.postbg; cx.globalAlpha=.45; cx.fill(); cx.globalAlpha=1;
+      // dots + step labels
+      hist.forEach(function(p,i){
+        cx.beginPath(); cx.arc(X(i),Y(p),6,0,7);
+        cx.fillStyle=i===0?C.prior:C.post; cx.fill();
+        cx.strokeStyle="#fff"; cx.lineWidth=2; cx.stroke();
+        cx.fillStyle=C.faint;
+        cx.fillText(i===0?"start":labels[i], X(i)-(i===0?14:4), H-14);
+      });
+    }
+    $("#labPos").addEventListener("click",function(){add(true);});
+    $("#labNeg").addEventListener("click",function(){add(false);});
+    $("#labReset").addEventListener("click",reset);
+    labPrior.addEventListener("input",function(){labPriorV.textContent=parseFloat(labPrior.value).toFixed(parseFloat(labPrior.value)<10?1:0)+"%"; reset();});
+    labSens.addEventListener("input",function(){labSensV.textContent=labSens.value+"%";});
+    labSpec.addEventListener("input",function(){labSpecV.textContent=labSpec.value+"%";});
+    reset();
+  })();
+
+  /* ============================================================
+     MONTY HALL
+     ============================================================ */
+  (function(){
+    var doorsEl=$("#montyDoors"); if(!doorsEl) return;
+    var doors=[].slice.call(doorsEl.querySelectorAll(".door"));
+    var msg=$("#montyMsg"), actions=$("#montyActions");
+    var tally={stay:{w:0,g:0},sw:{w:0,g:0}};
+    var prize,pick,openDoor,phase;
+    function r3(){return Math.floor(Math.random()*3);}
+    function setDoor(i,content,cls){
+      doors[i].querySelector(".dc").textContent=content||"";
+      doors[i].className="door"+(cls?" "+cls:"");
+    }
+    function resetGame(){
+      prize=r3(); pick=-1; openDoor=-1; phase=0;
+      doors.forEach(function(d,i){ setDoor(i,"",""); d.disabled=false; });
+      msg.textContent="Pick a door.";
+      actions.innerHTML="";
+    }
+    function updateTally(){
+      ["stay","sw"].forEach(function(k){
+        var t=tally[k], pctv=t.g?Math.round(t.w/t.g*100):0;
+        $(k==="stay"?"#stPct":"#swPct").textContent=t.g?pctv+"% wins":"—";
+        $(k==="stay"?"#stCount":"#swCount").textContent="("+t.g.toLocaleString()+" game"+(t.g===1?"":"s")+")";
+        $(k==="stay"?"#stBar":"#swBar").style.width=pctv+"%";
+      });
+    }
+    function montyOpen(){
+      var options=[0,1,2].filter(function(i){return i!==pick && i!==prize;});
+      openDoor=options[Math.floor(Math.random()*options.length)];
+      setDoor(openDoor,"🐐","opened");
+      doors.forEach(function(d){d.disabled=true;});
+      doors[pick].classList.add("picked");
+      msg.textContent="Door "+(openDoor+1)+" is a goat. Stay with door "+(pick+1)+", or switch?";
+      actions.innerHTML='<button class="lab-btn" id="mStay">Stay</button><button class="lab-btn pos" id="mSwitch">Switch</button>';
+      $("#mStay").addEventListener("click",function(){decide(false);});
+      $("#mSwitch").addEventListener("click",function(){decide(true);});
+    }
+    function decide(switched){
+      var other=[0,1,2].filter(function(i){return i!==pick && i!==openDoor;})[0];
+      var finalPick=switched?other:pick;
+      var win=finalPick===prize;
+      // reveal
+      [0,1,2].forEach(function(i){ setDoor(i, i===prize?"🚗":"🐐", (i===openDoor?"opened":"")); });
+      doors[finalPick].classList.add(win?"win":"picked");
+      doors.forEach(function(d){d.disabled=true;});
+      var k=switched?"sw":"stay";
+      tally[k].g++; if(win)tally[k].w++;
+      updateTally();
+      msg.textContent=(win?"You won the car":"A goat")+" — you "+(switched?"switched":"stayed")+". "+(win?"":"The car was behind door "+(prize+1)+". ");
+      actions.innerHTML='<button class="lab-btn" id="mAgain">Play again</button>';
+      $("#mAgain").addEventListener("click",resetGame);
+    }
+    doors.forEach(function(d,i){
+      d.addEventListener("click",function(){
+        if(phase!==0||d.disabled) return;
+        pick=i; phase=1; montyOpen();
+      });
+    });
+    $("#montySim").addEventListener("click",function(){
+      var n=1000;
+      for(var i=0;i<n;i++){
+        var pz=r3(), pk=r3();
+        tally.stay.g++; if(pk===pz) tally.stay.w++;
+        tally.sw.g++;   if(pk!==pz) tally.sw.w++;   // switching wins exactly when first pick was wrong
+      }
+      updateTally();
+      msg.textContent="Simulated 1,000 games of each strategy. Staying wins about 1 in 3; switching, about 2 in 3.";
+    });
+    resetGame(); updateTally();
+  })();
+
+  /* ============================================================
+     QUIZ
+     ============================================================ */
+  (function(){
+    var mount=$("#quizMount"); if(!mount) return;
+    var qs=[
+      {q:"A condition affects 1 in 1,000 people. A test is 99% sensitive and 99% specific. Someone screened at random tests positive. Their chance of having the condition is closest to…",
+       o:["99%","50%","9%","1%"], a:2,
+       why:"Per 100,000 people: 100 affected, 99 caught — but ~999 of the 99,900 healthy are wrongly flagged. 99 real out of ~1,098 positives ≈ 9%. Accurate test, rare condition, mostly-false positives."},
+      {q:"An expert testifies: “the probability of this match if the defendant were innocent is 1 in a million.” The prosecutor concludes there's a 1-in-a-million chance of innocence. What went wrong?",
+       o:["Nothing — that's valid","P(E | innocent) was swapped for P(innocent | E)","The match rate was miscalculated","The witness is unreliable"], a:1,
+       why:"That's the prosecutor's fallacy: the two conditionals point in opposite directions, and only Bayes — fed with a prior like the size of the suspect pool — converts one into the other."},
+      {q:"In the taxicab problem, intuition says “80% reliable witness, so 80% Blue.” What did that answer drop?",
+       o:["The likelihood","The prior — most cabs are Green","The evidence term","The witness's honesty"], a:1,
+       why:"Base-rate neglect. The witness's reliability is the likelihood; the 85/15 city split is the prior. Keeping both pulls the answer down to ~41% Blue."},
+      {q:"Your first positive test moved you from 1% to 8%. A second, independent positive test of the same quality moves you to about…",
+       o:["16%","8% — it's the same test","45%","99%"], a:2,
+       why:"Sequential updating: 8% becomes the new prior, and the same LR of 9 multiplies the odds again. 8% is odds ~1:11.5; ×9 gives ~44%. Independent evidence compounds."},
+      {q:"On the log-odds ruler, adding an independent piece of evidence with LR = 10 always…",
+       o:["Adds 10 decibans, wherever you are","Adds more when you start uncertain","Multiplies your probability by 10","Depends on the base rate"], a:0,
+       why:"That's the beauty of the log-odds form: each independent clue adds a fixed +10 db. What varies with your starting point is how that shift feels in probability terms."},
+      {q:"Why can “Linda is a bank teller AND a feminist” never be more probable than “Linda is a bank teller”?",
+       o:["Feminists are rarely tellers","The description fits option (a) better","A conjunction is a subset of each of its parts","It can be, if the story fits well enough"], a:2,
+       why:"Every feminist teller is already a teller, so the conjunction can't outgrow the whole. Vivid detail raises fit (likelihood) while shrinking the prior — and intuition only feels the first."}
+    ];
+    var answered=0, correct=0;
+    qs.forEach(function(item,qi){
+      var card=document.createElement("div"); card.className="qcard";
+      card.innerHTML='<div class="qn">Question '+(qi+1)+' of '+qs.length+'</div><p class="qq">'+item.q+'</p>'+
+        '<div class="qopts">'+item.o.map(function(o,oi){return '<button class="qopt" data-o="'+oi+'">'+o+'</button>';}).join("")+'</div>'+
+        '<div class="qwhy"></div>';
+      var opts=[].slice.call(card.querySelectorAll(".qopt"));
+      var why=card.querySelector(".qwhy");
+      opts.forEach(function(btn){
+        btn.addEventListener("click",function(){
+          if(card.getAttribute("data-done")) return;
+          card.setAttribute("data-done","1");
+          var chosen=parseInt(btn.getAttribute("data-o"),10);
+          opts.forEach(function(b,i){
+            b.disabled=true;
+            if(i===item.a) b.classList.add("correct");
+            else if(i===chosen) b.classList.add("wrong");
+          });
+          answered++; if(chosen===item.a) correct++;
+          why.innerHTML=(chosen===item.a?"<b>Right.</b> ":"<b>Not quite.</b> ")+item.why;
+          why.classList.add("show");
+          $("#quizScore").innerHTML=answered<qs.length
+            ? "Answered "+answered+" of "+qs.length+" — <b>"+correct+"</b> correct so far"
+            : (correct===qs.length ? "<b>"+correct+" / "+qs.length+"</b> — a perfect score. The traps have lost their teeth."
+               : "<b>"+correct+" / "+qs.length+"</b> — every miss above has its full explanation. That's how updating works.");
+        });
+      });
+      mount.appendChild(card);
+    });
+  })();
 
 })();
 </script>
