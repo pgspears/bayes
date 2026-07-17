@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Change Your Mind — An Interactive Guide to Bayes' Theorem</title>
+<meta name="description" content="A working, interactive introduction to Bayes' theorem: the mathematics of learning from evidence. Real examples, live visualizations, and the fallacies that follow from ignoring it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F5F7;
+  --paper-raised:#FBFCFD;
+  --paper-sunk:#EAEFF2;
+  --ink:#16202A;
+  --ink-soft:#47555F;
+  --ink-faint:#7A8891;
+  --line:#D8E0E6;
+  --line-strong:#C3CDD5;
+
+  --prior-text:#8A570D;  --prior:#C0821F;  --prior-bg:#F7EACD;
+  --like-text:#136A5F;   --like:#1E9486;   --like-bg:#D3ECE7;
+  --post-text:#4C2F95;   --post:#6A47C4;   --post-bg:#E6DCF8;
+  --evid-text:#465562;   --evid:#65788A;   --evid-bg:#E1E8ED;
+  --wrong-text:#9E2E1C;  --wrong:#C1442C;  --wrong-bg:#F6DBD3;
+
+  --sick:#C1442C;        /* actually has the condition */
+  --falsealarm:#DFA23A;  /* false positive */
+  --clear:#C7D2DA;       /* true negative */
+  --missed:#EBB7AC;      /* false negative */
+
+  --serif-display:"Fraunces",Georgia,serif;
+  --serif-body:"Newsreader",Georgia,serif;
+  --mono:"Spline Sans Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  --measure:38rem;
+  --wide:74rem;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(22,32,42,.04),0 8px 30px -18px rgba(22,32,42,.28);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif-body);font-size:19px;line-height:1.62;
+  font-optical-sizing:auto;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+::selection{background:var(--post-bg);color:var(--post-text)}
+
+/* ---------- layout scaffold ---------- */
+.wrap{max-width:var(--measure);margin:0 auto;padding:0 24px}
+.wide{max-width:var(--wide);margin:0 auto;padding:0 24px}
+section{padding:76px 0}
+@media (max-width:640px){section{padding:52px 0}body{font-size:17.5px}}
+
+h1,h2,h3,.display{font-family:var(--serif-display);font-weight:600;line-height:1.08;letter-spacing:-.01em}
+h2{font-size:clamp(1.9rem,4.6vw,3rem);margin:0 0 .35em;font-weight:600}
+h3{font-size:1.42rem;margin:2.2em 0 .5em;font-weight:600;letter-spacing:-.005em}
+p{margin:0 0 1.05em}
+a{color:var(--post-text);text-underline-offset:2px}
+strong{font-weight:600}
+em{font-style:italic}
+
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;margin:0 0 1.1em}
+.lede{font-size:1.16em;color:var(--ink-soft);line-height:1.55}
+.section-head{margin-bottom:1.6em}
+.section-num{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--evid);text-transform:uppercase}
+
+/* ---------- semantic term chips & coloring ---------- */
+.term{font-family:var(--mono);font-weight:600;font-size:.92em;padding:.06em .42em;border-radius:6px;white-space:nowrap;line-height:1.4}
+.t-prior{color:var(--prior-text);background:var(--prior-bg)}
+.t-like{color:var(--like-text);background:var(--like-bg)}
+.t-post{color:var(--post-text);background:var(--post-bg)}
+.t-evid{color:var(--evid-text);background:var(--evid-bg)}
+.c-prior{color:var(--prior-text);font-weight:600}
+.c-like{color:var(--like-text);font-weight:600}
+.c-post{color:var(--post-text);font-weight:600}
+.c-evid{color:var(--evid-text);font-weight:600}
+
+/* ---------- top bar / progress ---------- */
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--prior),var(--like),var(--post));width:0;z-index:60;transition:width .1s linear}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:11px 22px;backdrop-filter:blur(9px);background:rgba(242,245,247,.82);border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s;transform:translateY(-100%);transition:transform .35s ease,border-color .3s}
+#topbar.show{transform:translateY(0);border-bottom:1px solid var(--line)}
+#topbar .brand{font-family:var(--serif-display);font-weight:600;font-size:.98rem;letter-spacing:-.01em}
+#topbar nav{display:flex;gap:2px;font-family:var(--mono);font-size:.72rem;letter-spacing:.04em}
+#topbar nav a{color:var(--ink-soft);text-decoration:none;padding:5px 9px;border-radius:7px;transition:background .2s,color .2s}
+#topbar nav a:hover,#topbar nav a.active{background:var(--paper-sunk);color:var(--ink)}
+@media (max-width:820px){#topbar nav{display:none}}
+
+/* ---------- hero ---------- */
+#hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;padding:96px 0 60px}
+#hero .grain{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(var(--line) .7px,transparent .7px);background-size:26px 26px;-webkit-mask-image:radial-gradient(ellipse 80% 65% at 50% 42%,#000 30%,transparent 78%);mask-image:radial-gradient(ellipse 80% 65% at 50% 42%,#000 30%,transparent 78%)}
+#hero .wrap{position:relative}
+.hero-title{font-size:clamp(2.9rem,9vw,6rem);font-weight:600;line-height:.98;margin:.1em 0 .35em;letter-spacing:-.025em}
+.hero-title .em{font-style:italic;font-weight:500;color:var(--post-text)}
+.hero-sub{font-size:clamp(1.15rem,2.4vw,1.5rem);color:var(--ink-soft);max-width:32ch;line-height:1.4}
+.hero-teaser{margin-top:2.6em;padding:26px 28px;background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);max-width:40rem}
+.hero-teaser .q{font-size:1.08em;margin-bottom:.2em}
+.reveal-btn{font-family:var(--mono);font-size:.82rem;letter-spacing:.04em;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);padding:9px 16px;border-radius:9px;cursor:pointer;margin-top:14px;transition:.2s;font-weight:500}
+.reveal-btn:hover{background:var(--post);color:#fff;border-color:var(--post)}
+.reveal-ans{margin-top:16px;overflow:hidden;max-height:0;opacity:0;transition:max-height .55s ease,opacity .5s ease}
+.reveal-ans.open{max-height:340px;opacity:1}
+.big-num{font-family:var(--serif-display);font-size:3.2rem;font-weight:600;color:var(--post-text);line-height:1;display:inline-block}
+.scroll-cue{margin-top:auto;padding-top:48px;font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:10px}
+.scroll-cue .line{width:1px;height:30px;background:var(--line-strong);position:relative;overflow:hidden}
+.scroll-cue .line::after{content:"";position:absolute;top:-30px;left:0;width:1px;height:30px;background:var(--post);animation:drop 2.1s ease-in-out infinite}
+@keyframes drop{0%{top:-30px}60%,100%{top:30px}}
+
+/* ---------- equation blocks ---------- */
+.eq-wrap{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:30px 24px;margin:1.6em 0;box-shadow:var(--shadow);text-align:center;overflow-x:auto}
+.eq{display:inline-flex;align-items:center;justify-content:center;gap:.34em;font-family:var(--mono);font-size:clamp(1rem,3.2vw,1.5rem);font-weight:500;line-height:1.2}
+.frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 .12em}
+.frac .num,.frac .den{padding:.14em .55em}
+.frac .den{border-top:1.6px solid var(--ink);margin-top:.05em}
+.eq .op{color:var(--ink-soft);margin:0 .12em}
+.paren{color:var(--ink-faint)}
+
+.eq-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-top:.6em}
+
+/* term-anatomy grid */
+.anatomy{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:1.8em 0}
+.anat-card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--paper-raised)}
+.anat-card .sym{font-family:var(--mono);font-weight:600;font-size:1.05rem;margin-bottom:.15em}
+.anat-card .role{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.5em}
+.anat-card .desc{font-size:.92em;color:var(--ink-soft);line-height:1.45;margin:0}
+.anat-card.prior{border-top:3px solid var(--prior)} .anat-card.prior .sym,.anat-card.prior .role{color:var(--prior-text)}
+.anat-card.like{border-top:3px solid var(--like)} .anat-card.like .sym,.anat-card.like .role{color:var(--like-text)}
+.anat-card.post{border-top:3px solid var(--post)} .anat-card.post .sym,.anat-card.post .role{color:var(--post-text)}
+.anat-card.evid{border-top:3px solid var(--evid)} .anat-card.evid .sym,.anat-card.evid .role{color:var(--evid-text)}
+
+/* ---------- module (interactive block, breaks out of measure) ---------- */
+.module{background:var(--paper-raised);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;margin:2em 0}
+.module-head{padding:20px 26px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.module-head h3{margin:0;font-size:1.2rem}
+.module-head .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.module-body{padding:26px}
+@media (max-width:640px){.module-body{padding:18px}}
+
+/* ---------- frequency grid instrument ---------- */
+.grid-layout{display:grid;grid-template-columns:1fr 300px;gap:30px;align-items:start}
+@media (max-width:820px){.grid-layout{grid-template-columns:1fr}}
+#freqCanvasWrap{position:relative}
+#freqCanvas{width:100%;height:auto;display:block;border-radius:10px;background:var(--paper-sunk)}
+.controls{display:flex;flex-direction:column;gap:20px}
+.control label{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:8px;text-transform:uppercase}
+.control label .val{font-size:.98rem;color:var(--ink);font-weight:600;letter-spacing:0}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:5px;background:var(--line-strong);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--paper-raised);border:2.5px solid var(--post);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:transform .12s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--paper-raised);border:2.5px solid var(--post);cursor:pointer}
+input[type=range]:focus-visible{box-shadow:0 0 0 3px var(--post-bg)}
+.range-prior::-webkit-slider-thumb{border-color:var(--prior)} .range-prior:focus-visible{box-shadow:0 0 0 3px var(--prior-bg)}
+.range-like::-webkit-slider-thumb{border-color:var(--like)} .range-like:focus-visible{box-shadow:0 0 0 3px var(--like-bg)}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:16px;font-family:var(--mono);font-size:.72rem;color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.readout{background:var(--paper-sunk);border-radius:12px;padding:16px 18px;margin-top:4px}
+.readout .big{font-family:var(--serif-display);font-size:2.4rem;font-weight:600;color:var(--post-text);line-height:1}
+.readout .cap{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.3em}
+.readout .expl{font-size:.9em;color:var(--ink-soft);margin-top:.6em;line-height:1.4}
+.focus-toggle{display:inline-flex;gap:8px;align-items:center;font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);cursor:pointer;margin-top:4px;user-select:none}
+.focus-toggle input{width:16px;height:16px;accent-color:var(--post)}
+
+/* ---------- belief meter ---------- */
+.meter{margin:20px 0 6px}
+.meter-track{position:relative;height:52px;border-radius:10px;background:linear-gradient(90deg,var(--paper-sunk),var(--paper-sunk));border:1px solid var(--line);overflow:visible}
+.meter-fill{position:absolute;top:0;bottom:0;left:0;border-radius:9px 0 0 9px;background:linear-gradient(90deg,var(--post-bg),var(--post));opacity:.9;transition:width 1s cubic-bezier(.4,0,.15,1)}
+.meter-mark{position:absolute;top:-8px;bottom:-8px;width:2px;background:var(--ink);transition:left 1s cubic-bezier(.4,0,.15,1)}
+.meter-mark.prior{background:var(--prior)}
+.meter-mark .flag{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.66rem;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.meter-mark.prior .flag{color:var(--prior-text)}
+.meter-mark.post .flag{color:var(--post-text)}
+.meter-mark .dot{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:var(--ink);border:2px solid var(--paper-raised)}
+.meter-mark.prior .dot{background:var(--prior)}
+.meter-mark.post .dot{background:var(--post)}
+.meter-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.66rem;color:var(--ink-faint);margin-top:14px}
+.meter-caption{font-family:var(--mono);font-size:.78rem;color:var(--ink-soft);margin-top:14px;text-align:center}
+.meter-caption b{color:var(--post-text)}
+
+/* ---------- stepper (worked examples) ---------- */
+.stepper .step-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.step-dots{display:flex;gap:7px}
+.step-dots button{width:10px;height:10px;border-radius:50%;border:none;background:var(--line-strong);cursor:pointer;padding:0;transition:.2s}
+.step-dots button.active{background:var(--post);transform:scale(1.3)}
+.step-btn{font-family:var(--mono);font-size:.78rem;letter-spacing:.03em;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);padding:8px 15px;border-radius:9px;cursor:pointer;transition:.2s;font-weight:500}
+.step-btn:hover:not(:disabled){background:var(--ink);color:var(--paper)}
+.step-btn:disabled{opacity:.38;cursor:not-allowed}
+.step-count{font-family:var(--mono);font-size:.74rem;color:var(--ink-faint);margin-left:auto}
+.step-panel{min-height:150px}
+.step-slide{display:none;animation:fade .4s ease}
+.step-slide.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.step-kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--post-text);margin-bottom:.5em}
+.step-slide h4{font-family:var(--serif-display);font-weight:600;font-size:1.28rem;margin:0 0 .5em}
+.step-slide p{margin:0 0 .8em;font-size:.98em}
+.plug{display:flex;flex-wrap:wrap;gap:10px;margin:1em 0}
+.plug .chip{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--paper);min-width:120px}
+.plug .chip .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:2px}
+.plug .chip .v{font-family:var(--mono);font-weight:600;font-size:1.05rem}
+.plug .chip.prior .v{color:var(--prior-text)} .plug .chip.prior{border-color:var(--prior-bg);background:linear-gradient(var(--paper),var(--prior-bg) 380%)}
+.plug .chip.like .v{color:var(--like-text)}
+.plug .chip.evid .v{color:var(--evid-text)}
+.plug .chip.post .v{color:var(--post-text)}
+
+/* natural-frequency callout */
+.nf{background:var(--paper-sunk);border-left:3px solid var(--like);border-radius:0 10px 10px 0;padding:14px 18px;font-size:.94em;margin:1em 0}
+.nf .h{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--like-text);margin-bottom:.4em}
+
+/* ---------- calculator ---------- */
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media (max-width:760px){.calc-grid{grid-template-columns:1fr}}
+.calc-field{margin-bottom:20px}
+.calc-field label{display:block;font-size:.94em;margin-bottom:6px;color:var(--ink)}
+.calc-field .hint{font-size:.8em;color:var(--ink-faint);margin-bottom:9px;line-height:1.4}
+.slider-row{display:flex;align-items:center;gap:14px}
+.slider-row output{font-family:var(--mono);font-weight:600;font-size:1.05rem;min-width:58px;text-align:right}
+.calc-out{background:var(--paper-sunk);border-radius:14px;padding:24px}
+.calc-eq{font-family:var(--mono);font-size:.9rem;line-height:2.1;word-break:break-word}
+.calc-result{text-align:center;margin-top:8px}
+.calc-result .big{font-family:var(--serif-display);font-size:3rem;font-weight:600;color:var(--post-text);line-height:1}
+.preset-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.preset{font-family:var(--mono);font-size:.74rem;border:1px solid var(--line-strong);background:var(--paper);padding:7px 12px;border-radius:20px;cursor:pointer;transition:.2s;color:var(--ink-soft)}
+.preset:hover,.preset.active{background:var(--post);color:#fff;border-color:var(--post)}
+
+/* ---------- fallacies ---------- */
+.fallacy{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:16px 0;background:var(--paper-raised)}
+.fallacy summary{list-style:none;cursor:pointer;padding:20px 24px;display:flex;align-items:center;gap:16px;transition:background .2s}
+.fallacy summary::-webkit-details-marker{display:none}
+.fallacy summary:hover{background:var(--paper-sunk)}
+.fallacy .fnum{font-family:var(--mono);font-size:.82rem;color:var(--wrong);font-weight:600;flex-shrink:0}
+.fallacy .ftitle{font-family:var(--serif-display);font-weight:600;font-size:1.18rem;flex:1}
+.fallacy .chev{transition:transform .3s;color:var(--ink-faint);flex-shrink:0}
+.fallacy[open] .chev{transform:rotate(90deg)}
+.fallacy .fbody{padding:0 24px 24px;border-top:1px solid var(--line)}
+.fallacy .fbody>*:first-child{margin-top:1em}
+.wrong-right{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:1.2em 0}
+@media (max-width:600px){.wrong-right{grid-template-columns:1fr}}
+.wr-card{border-radius:12px;padding:15px 18px;font-size:.92em}
+.wr-card .lab{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5em;font-weight:600}
+.wr-card.wrong{background:var(--wrong-bg)} .wr-card.wrong .lab{color:var(--wrong-text)}
+.wr-card.right{background:var(--like-bg)} .wr-card.right .lab{color:var(--like-text)}
+.wr-card p{margin:0}
+
+/* ---------- takeaways ---------- */
+.takeaways{list-style:none;padding:0;margin:1.5em 0;counter-reset:t}
+.takeaways li{counter-increment:t;position:relative;padding:18px 0 18px 56px;border-top:1px solid var(--line)}
+.takeaways li:last-child{border-bottom:1px solid var(--line)}
+.takeaways li::before{content:counter(t,decimal-leading-zero);position:absolute;left:0;top:18px;font-family:var(--mono);font-size:.82rem;color:var(--post);font-weight:600}
+.takeaways li b{font-weight:600}
+.takeaways li .sub{display:block;color:var(--ink-soft);font-size:.94em;margin-top:.2em}
+
+/* ---------- deep dive: history timeline ---------- */
+.timeline{position:relative;margin:1.8em 0}
+.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:14px;width:2px;background:var(--line)}
+.tl-item{position:relative;padding:0 0 30px 40px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{position:absolute;left:0;top:2px;width:16px;height:16px;border-radius:50%;background:var(--paper);border:3px solid var(--post);box-sizing:border-box}
+.tl-year{font-family:var(--mono);font-size:.8rem;font-weight:600;letter-spacing:.05em;color:var(--post-text);display:block;margin-bottom:.15em}
+.tl-item h4{font-family:var(--serif-display);font-weight:600;font-size:1.14rem;margin:.05em 0 .35em;letter-spacing:-.005em}
+.tl-item p{margin:0;font-size:.96em;color:var(--ink-soft);line-height:1.55}
+
+/* ---------- deep dive: field grid ---------- */
+.deep-sub{max-width:var(--measure);margin:2.8em auto 1.4em}
+.deep-sub h3{margin-top:0}
+.deep-sub p{margin:0}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+.field-card{border:1px solid var(--line);border-radius:14px;padding:20px 22px;background:var(--paper-raised);box-shadow:var(--shadow)}
+.field-card .fk{font-family:var(--mono);font-size:.67rem;letter-spacing:.14em;text-transform:uppercase;color:var(--post-text);margin-bottom:.55em;display:flex;align-items:center;gap:8px}
+.field-card .fk i{width:9px;height:9px;border-radius:50%;background:var(--post);display:inline-block;flex-shrink:0}
+.field-card h4{font-family:var(--serif-display);font-weight:600;font-size:1.16rem;margin:0 0 .4em;letter-spacing:-.005em}
+.field-card p{margin:0;font-size:.94em;color:var(--ink-soft);line-height:1.5}
+
+/* ---------- deep dive: philosophy ---------- */
+.nf.concept{border-left-color:var(--post);background:var(--paper-sunk)}
+.nf.concept .h{color:var(--post-text)}
+.deep-lead{font-weight:600;color:var(--ink)}
+
+/* ---------- footer ---------- */
+footer{padding:60px 0 90px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:.9em}
+footer .wrap{max-width:var(--measure)}
+footer a{color:var(--post-text)}
+.kbd{font-family:var(--mono);font-size:.82em;background:var(--paper-sunk);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+
+.divider{width:100%;max-width:var(--measure);margin:0 auto;height:1px;background:var(--line)}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="topbar">
+  <span class="brand">Bayes · <span style="color:var(--ink-faint);font-weight:400">how to change your mind</span></span>
+  <nav>
+    <a href="#idea">Idea</a>
+    <a href="#theorem">Theorem</a>
+    <a href="#grid">Grid</a>
+    <a href="#examples">Examples</a>
+    <a href="#calculator">Calculator</a>
+    <a href="#fallacies">Fallacies</a>
+    <a href="#deeper">Deeper</a>
+    <a href="#takeaways">Takeaways</a>
+  </nav>
+</div>
+
+<!-- ========================= HERO ========================= -->
+<header id="hero">
+  <div class="grain"></div>
+  <div class="wrap">
+    <p class="eyebrow">An interactive introduction</p>
+    <h1 class="hero-title">How to<br>change your <span class="em">mind</span></h1>
+    <p class="hero-sub">Bayes' theorem is the exact mathematics of learning from evidence. Here is how it works — and why ignoring it fools even careful people.</p>
+
+    <div class="hero-teaser">
+      <p class="q">A disease affects <strong>1 in 100</strong> people. A test for it is <strong>90% accurate</strong> — it catches 90% of real cases, and wrongly flags only 10% of healthy people.</p>
+      <p class="q" style="margin-bottom:0">Your test comes back <strong>positive</strong>. What's the chance you actually have the disease?</p>
+      <button class="reveal-btn" id="heroReveal">Reveal the answer →</button>
+      <div class="reveal-ans" id="heroAns">
+        <p style="margin:0 0 .2em"><span class="big-num">≈&nbsp;8%</span></p>
+        <p style="margin:.4em 0 0;color:var(--ink-soft);font-size:.96em">Not 90%. Not even close. Because the disease is rare, the healthy majority produces far more false alarms than the sick minority produces true ones. That gap — between how it feels and what's true — is exactly what Bayes' theorem measures. By the end of this page, you'll compute it yourself.</p>
+      </div>
+    </div>
+
+    <div class="scroll-cue"><span class="line"></span>Scroll to begin</div>
+  </div>
+</header>
+
+<!-- ========================= 1. THE IDEA ========================= -->
+<section id="idea">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">01 — The core idea</p>
+      <h2>Evidence should move you — but by how much?</h2>
+    </div>
+    <p class="lede">Every day you hold beliefs, and then you run into evidence. A cough. A test result. A stranger's testimony. A search hit. The honest question is never simply <em>“what does this evidence say?”</em> It's <em>“how far should this evidence move me, given everything I already knew?”</em></p>
+    <p>Bayes' theorem answers that question precisely. It takes what you believed <em>before</em> the evidence, combines it with how strongly the evidence points one way or another, and returns exactly what you should believe <em>after</em>. Nothing mystical — just bookkeeping for belief.</p>
+
+    <p>Three quantities do all the work. It's worth meeting them by name now, because every example on this page is built from the same three, wearing different clothes:</p>
+
+    <div class="anatomy">
+      <div class="anat-card prior">
+        <div class="sym">The prior</div>
+        <div class="role">what you believed before</div>
+        <p class="desc">How likely the hypothesis was <em>before</em> this new evidence arrived. Often this is just a base rate — how common the thing is in the first place.</p>
+      </div>
+      <div class="anat-card like">
+        <div class="sym">The likelihood</div>
+        <div class="role">how well evidence fits</div>
+        <p class="desc">If the hypothesis were true, how probable is <em>this exact evidence</em>? And — just as important — how probable would it be if the hypothesis were false?</p>
+      </div>
+      <div class="anat-card post">
+        <div class="sym">The posterior</div>
+        <div class="role">what you believe after</div>
+        <p class="desc">Your updated belief, after weighing the evidence against the prior. This is the answer Bayes' theorem hands back to you.</p>
+      </div>
+    </div>
+
+    <p>Here's the single most useful habit for thinking about all of this, and it requires no algebra at all. Instead of juggling percentages, <strong>imagine a concrete crowd of people</strong> and simply count.</p>
+
+    <div class="nf">
+      <div class="h">Natural frequencies · the disease from the top of the page</div>
+      <p style="margin:0">Picture <strong>1,000 people</strong>. Since the disease hits 1 in 100, about <strong style="color:var(--sick)">10 are actually sick</strong> and 990 are healthy. The test catches 90% of the sick — so it flags <strong style="color:var(--sick)">9</strong> of those 10. But it also wrongly flags 10% of the healthy — and 10% of 990 is <strong style="color:var(--falsealarm)">99 false alarms</strong>. So <strong>108 people test positive</strong>, but only <strong style="color:var(--sick)">9</strong> are truly sick. Nine out of 108 is about <strong style="color:var(--post-text)">8%</strong>. The false alarms simply outnumber the real cases.</p>
+    </div>
+
+    <p>That's the whole intuition. When a hypothesis is rare, evidence has to fight against a large crowd of “false alarms” before it can make the hypothesis probable. Bayes' theorem is just this counting argument, written compactly enough to handle any numbers you throw at it. Let's write it down.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 2. THE THEOREM ========================= -->
+<section id="theorem">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">02 — The theorem itself</p>
+      <h2>The equation, one piece at a time</h2>
+    </div>
+    <p class="lede">We'll write <span class="term t-post">H</span> for the <strong>hypothesis</strong> (the thing that might be true) and <span class="term t-like">E</span> for the <strong>evidence</strong> (what you observed). The vertical bar <span class="term t-evid">|</span> is read <em>“given”</em>: <span class="term t-post">P(H&nbsp;|&nbsp;E)</span> means “the probability of H, given that we've seen E.”</p>
+
+    <div class="eq-wrap">
+      <div class="eq">
+        <span class="c-post">P(H&nbsp;|&nbsp;E)</span>
+        <span class="op">=</span>
+        <span class="frac">
+          <span class="num"><span class="c-like">P(E&nbsp;|&nbsp;H)</span> <span class="op" style="font-size:.8em">·</span> <span class="c-prior">P(H)</span></span>
+          <span class="den"><span class="c-evid">P(E)</span></span>
+        </span>
+      </div>
+      <span class="eq-label c-post">what you believe after the evidence</span>
+    </div>
+
+    <p>Read it left to right as a recipe. To find what you should believe after seeing the evidence — the <span class="c-post">posterior</span> — you take how well the evidence fits your hypothesis — the <span class="c-like">likelihood</span> — multiply it by how plausible the hypothesis was to begin with — the <span class="c-prior">prior</span> — and then divide by how likely that evidence was overall — the <span class="c-evid">evidence term</span>, which simply rescales everything so the probabilities add up correctly.</p>
+
+    <div class="anatomy">
+      <div class="anat-card post">
+        <div class="sym">P(H | E)</div>
+        <div class="role">posterior</div>
+        <p class="desc">The probability the hypothesis is true, <em>after</em> accounting for the evidence. The number you actually want.</p>
+      </div>
+      <div class="anat-card like">
+        <div class="sym">P(E | H)</div>
+        <div class="role">likelihood</div>
+        <p class="desc">If the hypothesis were true, how probable is this evidence? A sensitive test makes this high.</p>
+      </div>
+      <div class="anat-card prior">
+        <div class="sym">P(H)</div>
+        <div class="role">prior</div>
+        <p class="desc">How probable the hypothesis was before the evidence — usually the base rate. Ignore it at your peril.</p>
+      </div>
+      <div class="anat-card evid">
+        <div class="sym">P(E)</div>
+        <div class="role">total evidence</div>
+        <p class="desc">How likely the evidence was <em>at all</em>, whether or not the hypothesis is true. The great normalizer.</p>
+      </div>
+    </div>
+
+    <h3>Unfolding the denominator</h3>
+    <p>That bottom term, <span class="c-evid">P(E)</span>, is a little abstract on its own — “how likely was the evidence overall?” In practice we almost always compute it by splitting the world into two cases: the evidence can show up when the hypothesis is <strong>true</strong>, or when it's <strong>false</strong>. Add those two paths together and you have the total. Written out, the full working form of the theorem is:</p>
+
+    <div class="eq-wrap">
+      <div class="eq" style="flex-wrap:wrap">
+        <span class="c-post">P(H&nbsp;|&nbsp;E)</span>
+        <span class="op">=</span>
+        <span class="frac">
+          <span class="num"><span class="c-like">P(E&nbsp;|&nbsp;H)</span><span class="c-prior">P(H)</span></span>
+          <span class="den"><span class="c-like">P(E&nbsp;|&nbsp;H)</span><span class="c-prior">P(H)</span> <span class="op">+</span> <span class="c-like">P(E&nbsp;|&nbsp;¬H)</span><span class="c-prior">P(¬H)</span></span>
+        </span>
+      </div>
+    </div>
+
+    <p>The symbol <span class="term t-evid">¬H</span> means <em>“not H”</em> — the hypothesis is false. So <span class="c-prior">P(¬H)</span> is just <span class="c-prior">1&nbsp;−&nbsp;P(H)</span>, and <span class="c-like">P(E&nbsp;|&nbsp;¬H)</span> is the false-alarm rate: how often the evidence appears even when the hypothesis is <em>false</em>. Look closely and you'll see the numerator — the “true hits” — sitting inside the denominator alongside the “false alarms.” <strong>The posterior is nothing but the true hits as a fraction of all the hits.</strong> That is precisely the counting we did with 1,000 people, now in symbols.</p>
+
+    <p>Two paragraphs of algebra can only take intuition so far. The next section turns this equation into something you can push around with your hands.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 3. FREQUENCY GRID ========================= -->
+<section id="grid">
+  <div class="wide">
+    <div class="section-head" style="max-width:var(--measure);margin-left:auto;margin-right:auto">
+      <p class="section-num">03 — See it</p>
+      <h2>A thousand people, and the trouble with rare things</h2>
+      <p class="lede">Below is a crowd of 1,000. Each square is a person. Drag the three dials and watch who tests positive — and, among them, who is <em>actually</em> affected. This one picture contains the whole theorem.</p>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <h3>The natural-frequency grid</h3>
+        <span class="tag">live · 1,000 people</span>
+      </div>
+      <div class="module-body">
+        <div class="grid-layout">
+          <div>
+            <div id="freqCanvasWrap">
+              <canvas id="freqCanvas" width="800" height="500" role="img" aria-label="Grid of 1000 squares representing people, colored by disease status and test result"></canvas>
+            </div>
+            <div class="legend">
+              <span><i style="background:var(--sick)"></i> Sick — test positive <em style="font-style:normal;color:var(--ink-faint)">(true hit)</em></span>
+              <span><i style="background:var(--falsealarm)"></i> Healthy — test positive <em style="font-style:normal;color:var(--ink-faint)">(false alarm)</em></span>
+              <span><i style="background:var(--missed)"></i> Sick — test negative <em style="font-style:normal;color:var(--ink-faint)">(missed)</em></span>
+              <span><i style="background:var(--clear)"></i> Healthy — test negative</span>
+            </div>
+            <label class="focus-toggle"><input type="checkbox" id="focusPos"> Spotlight only the people who tested positive</label>
+          </div>
+
+          <div class="controls">
+            <div class="control">
+              <label for="sPrev">Base rate <span class="val" id="vPrev">1%</span></label>
+              <input type="range" class="range-prior" id="sPrev" min="0.1" max="60" step="0.1" value="1">
+            </div>
+            <div class="control">
+              <label for="sSens">Sensitivity <span class="val" id="vSens">90%</span></label>
+              <input type="range" class="range-like" id="sSens" min="50" max="100" step="1" value="90">
+            </div>
+            <div class="control">
+              <label for="sSpec">Specificity <span class="val" id="vSpec">90%</span></label>
+              <input type="range" class="range-like" id="sSpec" min="50" max="100" step="1" value="90">
+            </div>
+
+            <div class="readout">
+              <div class="cap">If you test positive, chance you're affected</div>
+              <div class="big" id="gPost">8%</div>
+              <div class="expl" id="gExpl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap" style="padding-top:8px">
+      <p><strong>Sensitivity</strong> is the share of truly affected people the test catches — its true-positive rate, <span class="c-like">P(E&nbsp;|&nbsp;H)</span>. <strong>Specificity</strong> is the share of unaffected people it correctly clears; one minus specificity is the false-alarm rate <span class="c-like">P(E&nbsp;|&nbsp;¬H)</span>. Try this: leave the test excellent — sensitivity and specificity both at 95% — and slide the base rate down toward 1%. Watch the amber false alarms swamp the red true hits. <strong>A near-perfect test can still be wrong most of the time it says “yes,” purely because the thing it looks for is rare.</strong> That's not a flaw in the test. It's the prior, refusing to be ignored.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 4. WORKED EXAMPLES ========================= -->
+<section id="examples">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">04 — Worked examples</p>
+      <h2>Three walks through the equation</h2>
+      <p class="lede">The theorem earns its keep on real problems. Each example below is broken into steps: read the situation, name the three quantities, then watch belief travel from prior to posterior. Use <strong>Next</strong> to advance.</p>
+    </div>
+  </div>
+
+  <div class="wide">
+    <!-- Example modules injected by JS -->
+    <div id="examplesMount"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 5. CALCULATOR ========================= -->
+<section id="calculator">
+  <div class="wide">
+    <div class="section-head" style="max-width:var(--measure);margin-left:auto;margin-right:auto">
+      <p class="section-num">05 — Do it yourself</p>
+      <h2>The Bayes calculator</h2>
+      <p class="lede">Now bring your own numbers. Set how common the hypothesis is, how well the evidence fits when it's true, and how often that same evidence shows up when it's false. The equation fills in as you go — and translates itself back into a crowd of 1,000.</p>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <h3>Bayesian update</h3>
+        <span class="tag">any two-outcome problem</span>
+      </div>
+      <div class="module-body">
+        <div class="preset-row" id="presetRow">
+          <button class="preset active" data-p="1" data-l="90" data-f="10">Rare disease test</button>
+          <button class="preset" data-p="30" data-l="80" data-f="15">Reasonable hunch</button>
+          <button class="preset" data-p="50" data-l="99" data-f="1">Strong, decisive test</button>
+          <button class="preset" data-p="0.01" data-l="99.9" data-f="0.1">One-in-ten-thousand</button>
+        </div>
+
+        <div class="calc-grid">
+          <div>
+            <div class="calc-field">
+              <label for="cPrior"><span class="term t-prior">P(H)</span> — Prior: how common is the hypothesis?</label>
+              <div class="hint">Before any evidence, out of everyone, what fraction fits the hypothesis?</div>
+              <div class="slider-row">
+                <input type="range" class="range-prior" id="cPrior" min="0.01" max="99" step="0.01" value="1">
+                <output id="oPrior">1%</output>
+              </div>
+            </div>
+            <div class="calc-field">
+              <label for="cLike"><span class="term t-like">P(E | H)</span> — Likelihood if true</label>
+              <div class="hint">When the hypothesis <em>is</em> true, how often does this evidence appear? (A test's sensitivity.)</div>
+              <div class="slider-row">
+                <input type="range" class="range-like" id="cLike" min="0" max="100" step="0.1" value="90">
+                <output id="oLike">90%</output>
+              </div>
+            </div>
+            <div class="calc-field">
+              <label for="cFalse"><span class="term t-like">P(E | ¬H)</span> — Likelihood if false</label>
+              <div class="hint">When the hypothesis is <em>false</em>, how often does the same evidence still appear? (The false-alarm rate.)</div>
+              <div class="slider-row">
+                <input type="range" class="range-like" id="cFalse" min="0" max="100" step="0.1" value="10">
+                <output id="oFalse">10%</output>
+              </div>
+            </div>
+          </div>
+
+          <div class="calc-out">
+            <div class="calc-eq" id="calcEq"></div>
+            <div class="meter" id="calcMeter"></div>
+            <div class="calc-result">
+              <div class="big" id="calcBig">8.3%</div>
+              <div style="font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-top:4px">posterior — belief after the evidence</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nf" style="margin-top:22px" id="calcNF"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 6. FALLACIES ========================= -->
+<section id="fallacies">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">06 — When it's ignored</p>
+      <h2>Four ways good minds go wrong</h2>
+      <p class="lede">Every one of these mistakes is what Bayes' theorem looks like when a piece of it is dropped. They're not signs of stupidity — they're the default settings of human intuition. Naming them is how you catch yourself.</p>
+    </div>
+
+    <details class="fallacy" open>
+      <summary><span class="fnum">F1</span><span class="ftitle">Base-rate neglect</span><span class="chev">›</span></summary>
+      <div class="fbody">
+        <p>Judging how probable something is purely from how well the evidence <em>fits</em>, while forgetting how <span class="c-prior">common the thing was to begin with</span>. This is the mistake that makes the positive disease test feel like bad news.</p>
+        <p><strong>The taxicab problem.</strong> A city's cabs are 85% Green and 15% Blue. A witness to a night-time accident says the cab was Blue. Tested under the same conditions, the witness is right 80% of the time. So the cab was probably Blue — right?</p>
+        <div class="wrong-right">
+          <div class="wr-card wrong"><div class="lab">The intuitive answer</div><p>“The witness is 80% reliable and said Blue, so there's an 80% chance it was Blue.”</p></div>
+          <div class="wr-card right"><div class="lab">The Bayesian answer</div><p>Blue cabs correctly called Blue: 15% × 80% = 12%. Green cabs wrongly called Blue: 85% × 20% = 17%. So Blue is 12 ⁄ (12+17) ≈ <strong>41%</strong>. Despite the witness, the cab was more likely <em>Green</em>.</p></div>
+        </div>
+        <p style="margin-bottom:0">The witness's reliability is the <span class="c-like">likelihood</span>; the 85/15 split is the <span class="c-prior">prior</span>. Drop the prior and you land on 80%. Keep it, and the rarity of Blue cabs pulls the true answer below a coin flip.</p>
+      </div>
+    </details>
+
+    <details class="fallacy">
+      <summary><span class="fnum">F2</span><span class="ftitle">Confusing the inverse — the prosecutor's fallacy</span><span class="chev">›</span></summary>
+      <div class="fbody">
+        <p>Treating <span class="c-like">P(evidence | innocent)</span> as if it were <span class="c-post">P(innocent | evidence)</span>. These are different questions, and swapping them has sent innocent people to prison.</p>
+        <p><strong>The courtroom.</strong> A DNA sample matches the defendant. An expert testifies that the chance of such a match “if the defendant were innocent” is 1 in a million. The prosecutor concludes: therefore, a 1-in-a-million chance the defendant is innocent.</p>
+        <div class="wrong-right">
+          <div class="wr-card wrong"><div class="lab">The fallacy</div><p>“One-in-a-million to match by chance” is quietly re-read as “one-in-a-million chance of innocence.” The direction of the conditional has been flipped.</p></div>
+          <div class="wr-card right"><div class="lab">The correction</div><p>If the pool of possible suspects is, say, 5 million people, then about <strong>5 of them</strong> would match by pure chance. The match alone puts the defendant among ~5 equally-matching people — far from a 1-in-a-million certainty.</p></div>
+        </div>
+        <p style="margin-bottom:0">The rarity of the match is real and important, but it is <span class="c-like">P(E | ¬H)</span> — the false-alarm rate — not the <span class="c-post">posterior</span>. Only the full theorem, fed with the size of the suspect pool (the <span class="c-prior">prior</span>), tells you what the match is worth.</p>
+      </div>
+    </details>
+
+    <details class="fallacy">
+      <summary><span class="fnum">F3</span><span class="ftitle">The false-positive paradox</span><span class="chev">›</span></summary>
+      <div class="fbody">
+        <p>Assuming that an accurate test yields accurate results. When the condition being tested for is rare, <em>most</em> positive results are false — even for an excellent test. This isn't a paradox at all once you've watched the grid.</p>
+        <p><strong>Mass screening.</strong> Screen a whole population for a condition that affects 1 in 1,000, using a test that's 99% sensitive and 99% specific. A person tests positive. Their chance of actually having the condition is not 99% — it's about <strong>9%</strong>.</p>
+        <div class="nf">
+          <div class="h">Count it out · 100,000 people</div>
+          <p style="margin:0">100 are affected; the test catches 99 of them. Of the 99,900 unaffected, 1% are wrongly flagged — that's 999 false alarms. Among the 1,098 positives, only 99 are real: 99 ⁄ 1,098 ≈ <strong>9%</strong>.</p>
+        </div>
+        <p style="margin-bottom:0">It's the same shape as base-rate neglect, but it carries a practical lesson of its own: this is why doctors <em>confirm</em> a surprising positive with a second, independent test before acting. A second positive multiplies the evidence and drags the posterior upward — try it in the calculator by feeding the first result's posterior back in as a new prior.</p>
+      </div>
+    </details>
+
+    <details class="fallacy">
+      <summary><span class="fnum">F4</span><span class="ftitle">The conjunction fallacy</span><span class="chev">›</span></summary>
+      <div class="fbody">
+        <p>Judging a detailed, story-like scenario as <em>more</em> probable than a plainer one it's contained in — because the detail makes it feel more representative. But adding conditions can only ever make something <strong>less</strong> likely, never more.</p>
+        <p><strong>The Linda problem.</strong> Linda is 31, outspoken, and deeply concerned with social justice. Which is more probable — that Linda is (a) a bank teller, or (b) a bank teller who is active in the feminist movement? Most people choose (b).</p>
+        <div class="wrong-right">
+          <div class="wr-card wrong"><div class="lab">Why (b) tempts us</div><p>Option (b) fits the vivid description better. Representativeness — how well a story matches a stereotype — masquerades as probability.</p></div>
+          <div class="wr-card right"><div class="lab">Why (a) must win</div><p>Every feminist bank teller is already a bank teller, so (b) is a <em>subset</em> of (a). A subset can't be larger than the whole. P(teller ∧ feminist) ≤ P(teller), always.</p></div>
+        </div>
+        <p style="margin-bottom:0">In Bayesian terms, the extra detail raises the <span class="c-like">likelihood</span> — the story fits — while quietly shrinking the <span class="c-prior">prior</span>, since fewer people satisfy two conditions than one. Intuition feels the first pull and misses the second.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 7. IN THE WORLD ========================= -->
+<section id="deeper">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">07 — In the world</p>
+      <h2>Where Bayes actually lives</h2>
+      <p class="lede">You now have the whole machine: the equation, the intuition behind it, the traps that spring when it's ignored. This last section is for the curious — where this one idea came from, how far it reaches into working science, and why philosophers have argued over it for two centuries. None of it is required to <em>use</em> Bayes' theorem. All of it is worth knowing.</p>
+    </div>
+
+    <h3>A history in brief</h3>
+    <p>For an idea now woven through statistics, medicine, and artificial intelligence, Bayes' theorem had a strikingly slow start — published by accident, generalized by someone else, exiled for half a century, and rescued only when computers grew strong enough to make it practical.</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">1763</span>
+        <h4>An essay found in a drawer</h4>
+        <p>Thomas Bayes, a Presbyterian minister with a gift for mathematics, worked out how to reason <em>backwards</em> — from observed effects to their likely causes — by imagining balls rolled across a table and inferring where an unseen first ball must lie. He never published it. His friend Richard Price found the essay among Bayes' papers and sent it to the Royal Society, two years after Bayes had died.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">1774</span>
+        <h4>Laplace makes it a science</h4>
+        <p>Working independently in France, Pierre-Simon Laplace rediscovered the principle and turned it into a general method he called the “probability of causes.” He used it to estimate the mass of Saturn from astronomical data — stating the odds his figure was off by more than a hair — and to argue, from birth records, that slightly more boys are born than girls. For roughly a century, this was simply how careful people reasoned about uncertainty.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">1920s</span>
+        <h4>The great eclipse</h4>
+        <p>A new generation — Ronald Fisher, Jerzy Neyman, Egon Pearson — built the framework of p-values and significance tests that still fills textbooks. They dismissed reasoning from prior belief as unscientific “inverse probability.” Bayes' approach fell out of respectable use for decades, kept alive only at the margins.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">1939–54</span>
+        <h4>Kept alive by a stubborn few</h4>
+        <p>The geophysicist Harold Jeffreys, the Italian actuary Bruno de Finetti — who insisted that probability is nothing but a coherent degree of belief — the statistician Leonard Savage, and the physicist Richard Cox rebuilt the foundations. Cox proved something remarkable: <em>any</em> consistent system for reasoning about uncertainty must, in the end, obey the rules of probability.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">1941</span>
+        <h4>A secret at Bletchley Park</h4>
+        <p>To break the German navy's Enigma cipher, Alan Turing and I. J. Good used a sequential Bayesian method, accumulating “weight of evidence” in units Turing named the <em>ban</em> and the <em>deciban</em>. It worked — and it stayed classified for thirty years, so its influence on the field went quietly unseen.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">1990</span>
+        <h4>The computational explosion</h4>
+        <p>Bayes' theorem is easy to write and, for real-world problems, was long almost impossible to compute — the denominator could hide an intractable sum or integral. A family of algorithms called Markov chain Monte Carlo, able to sample from ferociously complex distributions, changed that. Once ordinary computers could run them, Bayesian methods swept through nearly every quantitative field within a decade.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <span class="tl-year">Today</span>
+        <h4>The quiet default</h4>
+        <p>From the spam filter guarding your inbox to the confirmation of gravitational waves, Bayesian inference is now so embedded in science and engineering that it usually goes unremarked. A minister's posthumous footnote about billiard balls became, in the end, infrastructure.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <div class="deep-sub">
+      <h3>Where it shows up in science</h3>
+      <p class="lede" style="font-size:1.05em">The same three-part move — prior, evidence, updated belief — reappears wherever people must draw conclusions from imperfect data. A few of the places it does real work:</p>
+    </div>
+    <div class="field-grid">
+      <div class="field-card">
+        <div class="fk"><i></i>Medicine &amp; trials</div>
+        <h4>Diagnosing, and deciding</h4>
+        <p>A positive test is only the start. Adaptive Bayesian trial designs let researchers update as each patient's data arrives, stopping a study early when a treatment is clearly working — or clearly futile. Regulators now accept such designs where a fixed-sample trial would be too slow or too large to justify.</p>
+      </div>
+      <div class="field-card">
+        <div class="fk"><i></i>Cosmology &amp; physics</div>
+        <h4>Weighing black holes</h4>
+        <p>When a detector records a gravitational wave, it never “sees” the colliding black holes; it infers their masses, spins, and distance by asking which sources would most probably have produced the exact ripple observed. The same reasoning reads the age and composition of the universe out of the cosmic microwave background.</p>
+      </div>
+      <div class="field-card">
+        <div class="fk"><i></i>Search &amp; rescue</div>
+        <h4>Finding the lost</h4>
+        <p>Bayesian search theory turns hunches into a probability map of where something lies, then redraws that map as each swept area comes up empty. It helped recover a hydrogen bomb lost off Spain in 1966, locate the submarine USS Scorpion in 1968, and find the wreckage of Air France 447 on the Atlantic floor in 2011 — after conventional searches had run out of ideas.</p>
+      </div>
+      <div class="field-card">
+        <div class="fk"><i></i>Machine learning</div>
+        <h4>Teaching machines to doubt</h4>
+        <p>The first workable spam filters simply scored each message by the words it contained, naive-Bayes style. Judea Pearl earned computing's highest honor for Bayesian networks — maps of cause and effect that let software reason under uncertainty — and Bayesian methods still tune the settings of the neural networks that came after.</p>
+      </div>
+      <div class="field-card">
+        <div class="fk"><i></i>Evolution &amp; genomics</div>
+        <h4>Reading the tree of life</h4>
+        <p>To reconstruct how species — or virus strains — are related, biologists ask which branching history would most probably have produced the DNA we can sequence today. Bayesian phylogenetics has become a standard way to date evolutionary splits and to trace an outbreak back toward its source.</p>
+      </div>
+      <div class="field-card">
+        <div class="fk"><i></i>Law &amp; forensics</div>
+        <h4>The weight of evidence</h4>
+        <p>A DNA match or a fingerprint carries no fixed meaning; its force depends on the prior and on the alternatives. Courts increasingly speak of <em>likelihood ratios</em> — the Bayesian measure of how far a piece of evidence should move belief — and of the prosecutor's fallacy that strikes whenever they forget to.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h3>The philosophical stakes</h3>
+    <p>Bayes' theorem is a piece of mathematics, and mathematics is never controversial. What has been argued over for two hundred years is what the numbers <em>mean</em> — and that argument reaches into the heart of how we know anything at all.</p>
+
+    <p><span class="deep-lead">Two kinds of probability.</span> Ask “what's the probability this coin lands heads?” and a frequentist answers: the long-run fraction of heads over endless tosses — a fact about the coin and the world. Now ask “what's the probability it rained in Rome on a particular day in 1631?” The frequentist has nothing to say; it either rained or it didn't, and there is no long run to appeal to. The Bayesian answers both questions the same way: probability is a <span class="c-post">degree of belief</span>, a number describing how confident you ought to be given what you know. On that reading, updating with Bayes' theorem isn't a special trick at all — it is simply what it <em>means</em> to hold beliefs rationally as evidence comes in.</p>
+
+    <div class="nf concept">
+      <div class="h">The Dutch book · why coherence isn't optional</div>
+      <p style="margin:0">Suppose your degrees of belief break the rules of probability — you're somehow 60% sure it will rain and also 60% sure it won't. Then a clever bookmaker can offer you a bundle of bets, each of which looks fair <em>by your own numbers</em>, that together guarantee you lose money no matter what the weather does. That bundle is called a “Dutch book,” and the argument — from Frank Ramsey and Bruno de Finetti — delivers a startling verdict: probabilistic coherence isn't an aesthetic preference. It is the price of not being a guaranteed loser.</p>
+    </div>
+
+    <p><span class="deep-lead">Isn't it all just subjective?</span> The oldest objection is that priors are arbitrary: your 10% and my 40% are mere opinions, so any conclusion we reach is tainted from the start. There are two replies. The first is practical: evidence tends to overwhelm priors. Feed two people who begin in disagreement the same steady stream of data and, under mild conditions, their posteriors <em>converge</em> — the starting priors “wash out,” and the world drags both toward the same answer. The second reply is more ambitious: perhaps there are principled, least-committal priors to begin from — the objective-Bayesian program pursued by Jeffreys and by E. T. Jaynes, who called probability theory “the logic of science,” the unique consistent extension of ordinary logic to reasoning under uncertainty. The subjectivity critics fear is, if not fully banished, at least disciplined.</p>
+
+    <p><span class="deep-lead">The honest catch.</span> None of this dissolves every difficulty. Where does the <em>first</em> prior come from? How should you reason when the true explanation is one you haven't even thought to consider? Bayesianism is a theory of how to <em>update</em> belief, not how to conjure it from nothing — and its critics press hard on exactly these seams. But as an account of how evidence ought to move a mind that already believes <em>something</em>, it remains the most complete one we have. That is why it now underwrites not only statistics but much of the philosophy of science itself: the study of how theories earn, and lose, our confidence.</p>
+
+    <p>Which returns us to where we began. Bayes' theorem was never really about tests or trials or taxicabs. It is a discipline for holding beliefs honestly — and, followed carefully, a surprisingly complete answer to the oldest question in the theory of knowledge: <em>how should experience change what we believe?</em></p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================= 8. TAKEAWAYS ========================= -->
+<section id="takeaways">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-num">08 — Carry this with you</p>
+      <h2>Seven things worth keeping</h2>
+    </div>
+    <ol class="takeaways">
+      <li><b>Evidence updates belief; it rarely replaces it.</b><span class="sub">The posterior is the prior <em>adjusted</em> by evidence — not the evidence taken at face value.</span></li>
+      <li><b>Your prior is data, not bias.</b><span class="sub">The base rate is a genuine fact about the world. Ignoring how common something is <em>is</em> the error, not a way of avoiding one.</span></li>
+      <li><b>P(A&nbsp;|&nbsp;B) is not P(B&nbsp;|&nbsp;A).</b><span class="sub">“How likely is this evidence if I'm sick?” and “how likely am I sick given this evidence?” are different numbers. Keep the arrow pointing the right way.</span></li>
+      <li><b>Rare hypotheses demand strong evidence.</b><span class="sub">The rarer the thing, the more false alarms it must outshine. A one-in-a-million claim needs roughly one-in-a-million-quality evidence to become probable.</span></li>
+      <li><b>An accurate test is not an accurate answer.</b><span class="sub">When the base rate is low, most positives are false. Accuracy and predictive value are not the same quantity.</span></li>
+      <li><b>Independent evidence multiplies.</b><span class="sub">A second, independent test that also comes back positive lets you feed one posterior in as the next prior — and belief compounds.</span></li>
+      <li><b>When in doubt, count a crowd of 1,000.</b><span class="sub">Translate every probability into natural frequencies and the answer usually becomes obvious without any algebra at all.</span></li>
+    </ol>
+    <p style="margin-top:2em">Bayes' theorem isn't really about tests or trials or cabs. It's a discipline for holding beliefs honestly: stating what you thought before, saying out loud how much the evidence should count, and letting those two things — not your first impression — decide what you believe next. That's the whole art of changing your mind well.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p style="font-family:var(--serif-display);font-size:1.3rem;color:var(--ink);margin-bottom:.4em">Thomas Bayes, 1701–1761</p>
+    <p>The theorem was published two years after his death, from notes edited by Richard Price. It went largely unused for a century, then quietly became one of the load-bearing ideas in statistics, medicine, search, and machine learning. Not bad for a footnote about billiard balls.</p>
+    <p style="margin-top:1.5em;color:var(--ink-faint);font-size:.86em">Built as a single self-contained page — every calculation runs live in your browser. Keyboard: <span class="kbd">Tab</span> to reach any control, arrow keys to adjust sliders. Nothing here is medical, legal, or financial advice; it's a thinking tool.</p>
+    <p style="margin-top:2em;padding-top:1.5em;border-top:1px solid var(--line);font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--ink-faint)">© 2026 Accelerate Solutions, LLC. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  /* ---------- helpers ---------- */
+  function $(s,ctx){return (ctx||document).querySelector(s);}
+  function pct(x){ // format a 0..1 number as a percentage string, adaptive precision
+    var p=x*100;
+    if(p>=10) return p.toFixed(0)+"%";
+    if(p>=1)  return p.toFixed(1)+"%";
+    if(p>=0.1)return p.toFixed(2)+"%";
+    return p.toFixed(3)+"%";
+  }
+  function bayes(prior, like, falseAlarm){
+    var num = like*prior;
+    var den = num + falseAlarm*(1-prior);
+    return den===0 ? 0 : num/den;
+  }
+
+  /* ---------- hero reveal ---------- */
+  var hb=$("#heroReveal"), ha=$("#heroAns");
+  if(hb){hb.addEventListener("click",function(){
+    ha.classList.add("open");
+    hb.style.display="none";
+  });}
+
+  /* ---------- scroll progress + topbar + active nav ---------- */
+  var progress=$("#progress"), topbar=$("#topbar");
+  var navLinks=[].slice.call(document.querySelectorAll("#topbar nav a"));
+  var sections=navLinks.map(function(a){return document.getElementById(a.getAttribute("href").slice(1));});
+  function onScroll(){
+    var st=window.scrollY||document.documentElement.scrollTop;
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    progress.style.width=(h>0?(st/h*100):0)+"%";
+    if(st>window.innerHeight*0.72) topbar.classList.add("show"); else topbar.classList.remove("show");
+    // active section
+    var idx=0;
+    for(var i=0;i<sections.length;i++){
+      if(sections[i] && sections[i].getBoundingClientRect().top<=140) idx=i;
+    }
+    navLinks.forEach(function(a,i){a.classList.toggle("active",i===idx);});
+  }
+  window.addEventListener("scroll",onScroll,{passive:true});
+  onScroll();
+
+  /* ============================================================
+     FREQUENCY GRID INSTRUMENT
+     ============================================================ */
+  var canvas=$("#freqCanvas"), ctx=canvas.getContext("2d");
+  var COLS=40, ROWS=25, N=COLS*ROWS; // 1000
+  var css=getComputedStyle(document.documentElement);
+  var COL={
+    sick:css.getPropertyValue("--sick").trim(),
+    fa:css.getPropertyValue("--falsealarm").trim(),
+    clear:css.getPropertyValue("--clear").trim(),
+    missed:css.getPropertyValue("--missed").trim()
+  };
+  var sPrev=$("#sPrev"), sSens=$("#sSens"), sSpec=$("#sSpec"), focusPos=$("#focusPos");
+  var vPrev=$("#vPrev"), vSens=$("#vSens"), vSpec=$("#vSpec");
+  var gPost=$("#gPost"), gExpl=$("#gExpl");
+
+  function computeCounts(prev, sens, spec){
+    var sick=Math.round(N*prev);
+    var healthy=N-sick;
+    var tp=Math.round(sick*sens);
+    var fn=sick-tp;
+    var fp=Math.round(healthy*(1-spec));
+    var tn=healthy-fp;
+    return {sick:sick,healthy:healthy,tp:tp,fn:fn,fp:fp,tn:tn,pos:tp+fp};
+  }
+  function drawGrid(){
+    var prev=parseFloat(sPrev.value)/100, sens=parseFloat(sSens.value)/100, spec=parseFloat(sSpec.value)/100;
+    vPrev.textContent=(parseFloat(sPrev.value)).toFixed(parseFloat(sPrev.value)<1?1:0)+"%";
+    vSens.textContent=sSens.value+"%";
+    vSpec.textContent=sSpec.value+"%";
+    var c=computeCounts(prev,sens,spec);
+
+    // build ordered class list: tp, fp, fn, tn  (positives first so they cluster top-left)
+    var cells=new Array(N);
+    var i=0,k;
+    for(k=0;k<c.tp;k++) cells[i++]="tp";
+    for(k=0;k<c.fp;k++) cells[i++]="fp";
+    for(k=0;k<c.fn;k++) cells[i++]="fn";
+    for(k=0;k<c.tn;k++) cells[i++]="tn";
+    while(i<N) cells[i++]="tn";
+
+    var W=canvas.width, H=canvas.height;
+    var pad=2, cw=W/COLS, ch=H/ROWS, r=Math.min(cw,ch)*0.30;
+    ctx.clearRect(0,0,W,H);
+    var focus=focusPos.checked;
+    for(var idx=0;idx<N;idx++){
+      var col=idx%COLS, row=Math.floor(idx/COLS);
+      var x=col*cw, y=row*ch;
+      var t=cells[idx], fill, alpha=1;
+      if(t==="tp"){fill=COL.sick;}
+      else if(t==="fp"){fill=COL.fa;}
+      else if(t==="fn"){fill=COL.missed; if(focus)alpha=0.12;}
+      else {fill=COL.clear; if(focus)alpha=0.12;}
+      ctx.globalAlpha=alpha;
+      ctx.fillStyle=fill;
+      roundRect(ctx,x+pad,y+pad,cw-pad*2,ch-pad*2,Math.max(2,r*0.5));
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+
+    // readout
+    var post=c.pos>0? c.tp/c.pos : 0;
+    gPost.textContent = c.pos>0 ? pct(post) : "—";
+    if(c.pos>0){
+      gExpl.innerHTML="Of the <b>"+c.pos+"</b> people who test positive, only <b style='color:"+COL.sick+"'>"+c.tp+"</b> are truly affected"+
+        (c.fp>0?" — the other <b style='color:"+COL.fa+"'>"+c.fp+"</b> are false alarms.":".");
+    } else {
+      gExpl.textContent="Nobody tests positive at these settings.";
+    }
+  }
+  function roundRect(ctx,x,y,w,h,r){
+    if(w<0||h<0)return;
+    r=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+  [sPrev,sSens,sSpec,focusPos].forEach(function(el){el.addEventListener("input",drawGrid);});
+  drawGrid();
+
+  /* ============================================================
+     BELIEF METER  (reusable)
+     ============================================================ */
+  function renderMeter(mount, prior, post){
+    var pri=Math.max(0,Math.min(1,prior)), po=Math.max(0,Math.min(1,post));
+    mount.innerHTML=
+      '<div class="meter-track">'+
+        '<div class="meter-fill" style="width:0%"></div>'+
+        '<div class="meter-mark prior" style="left:0%"><span class="flag">prior '+pct(pri)+'</span><span class="dot"></span></div>'+
+        '<div class="meter-mark post" style="left:0%"><span class="flag">posterior '+pct(po)+'</span><span class="dot"></span></div>'+
+      '</div>'+
+      '<div class="meter-scale"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>'+
+      '<div class="meter-caption">evidence moved belief from <b style="color:var(--prior-text)">'+pct(pri)+'</b> to <b>'+pct(po)+'</b></div>';
+    var fill=mount.querySelector(".meter-fill");
+    var mp=mount.querySelector(".meter-mark.prior");
+    var mpo=mount.querySelector(".meter-mark.post");
+    // set prior immediately, animate posterior
+    requestAnimationFrame(function(){
+      mp.style.left=(pri*100)+"%";
+      var apply=function(){ fill.style.width=(po*100)+"%"; mpo.style.left=(po*100)+"%"; };
+      if(reduce){apply();} else {setTimeout(apply,80);}
+    });
+  }
+
+  /* ============================================================
+     WORKED EXAMPLES (stepper)
+     ============================================================ */
+  var examples=[
+    {
+      id:"med", tag:"Medicine", title:"A positive result for a rare disease",
+      prior:0.01, like:0.90, fa:0.10,
+      steps:[
+        {k:"The situation",h:"You get an unexpected positive",
+         html:"A screening test comes back <strong>positive</strong> for a condition that affects <strong>1 in 100</strong> people. The lab reports the test is <strong>90% sensitive</strong> (it catches 90% of real cases) and <strong>90% specific</strong> (it correctly clears 90% of healthy people). It's tempting to read \"positive\" as near-certain bad news. Let's find out what it's actually worth."},
+        {k:"Name the pieces",h:"Sort the numbers into their roles",
+         html:"The hypothesis <span class='term t-post'>H</span> is <em>“I have the condition.”</em> The evidence <span class='term t-like'>E</span> is <em>“the test is positive.”</em> Now place each number:",
+         plug:[["prior","P(H)","1%"],["like","P(E | H)","90%"],["like2","P(E | ¬H)","10%"]],
+         after:"That last one is key: the test wrongly flags 10% of <em>healthy</em> people, and healthy people are almost everyone."},
+        {k:"Count the crowd",h:"Translate to 1,000 people first",
+         html:"Before touching the equation, sanity-check with natural frequencies.",
+         nf:"Among 1,000 people, about 10 are affected. The test flags 9 of them (true hits). Of the 990 healthy, it wrongly flags 99 (false alarms). So 108 test positive, but only 9 are truly affected."},
+        {k:"Run the theorem",h:"Plug into Bayes",
+         html:"Now the same thing in symbols — you should get the same answer:",
+         eq:true},
+        {k:"The result",h:"Belief barely moves",
+         html:"A positive result nudges your probability from 1% up to about <strong>8%</strong>. That's an eightfold jump — the test <em>did</em> tell you something real — but you're still far more likely to be healthy than not. The sensible next move isn't panic; it's a second, independent test.",
+         meter:true}
+      ]
+    },
+    {
+      id:"cab", tag:"Eyewitness", title:"The taxicab and the reliable witness",
+      prior:0.15, like:0.80, fa:0.20,
+      steps:[
+        {k:"The situation",h:"An 80%-reliable witness says “Blue”",
+         html:"A city's cabs are <strong>85% Green</strong> and <strong>15% Blue</strong>. One is in a hit-and-run at night. A witness says the cab was <strong>Blue</strong>. Under matching night conditions, this witness correctly identifies a cab's color <strong>80%</strong> of the time. How confident should the court be that the cab was Blue?"},
+        {k:"Name the pieces",h:"The base rate is the prior",
+         html:"Hypothesis <span class='term t-post'>H</span>: <em>“the cab was Blue.”</em> Evidence <span class='term t-like'>E</span>: <em>“the witness said Blue.”</em>",
+         plug:[["prior","P(H)","15%"],["like","P(E | H)","80%"],["like2","P(E | ¬H)","20%"]],
+         after:"If the cab were actually Green, the witness would still say “Blue” 20% of the time — that's the false-alarm rate."},
+        {k:"Count the crowd",h:"Imagine 100 such accidents",
+         html:"Frequencies again:",
+         nf:"Of 100 cabs, 15 are Blue and 85 Green. The witness calls 80% of the 15 Blue cabs “Blue” — that's 12 correct. But she also calls 20% of the 85 Green cabs “Blue” — that's 17 false alarms. So 29 cabs get called “Blue,” and only 12 truly are."},
+        {k:"Run the theorem",h:"Plug into Bayes",
+         html:"The equation confirms the count:",
+         eq:true},
+        {k:"The result",h:"More likely Green than Blue",
+         html:"Even with a reliable witness, the probability the cab was Blue is only about <strong>41%</strong> — below a coin flip. There are simply so many more Green cabs that the witness's occasional errors on them outnumber her correct calls on the rare Blue ones. The testimony mattered, but the base rate mattered more.",
+         meter:true}
+      ]
+    },
+    {
+      id:"dna", tag:"Forensics", title:"A DNA match and the prosecutor's fallacy",
+      prior:1/5000000, like:1.0, fa:1/1000000,
+      steps:[
+        {k:"The situation",h:"“One in a million” — of what?",
+         html:"A DNA sample from a crime scene matches a defendant. An analyst testifies that the probability of such a match <em>if the defendant were innocent</em> is <strong>1 in a million</strong>. With no other evidence tying this person to the crime, they were pulled from a database covering a metropolitan pool of about <strong>5 million</strong> adults. How damning is the match on its own?"},
+        {k:"Name the pieces",h:"The match rate is a likelihood, not an answer",
+         html:"Hypothesis <span class='term t-post'>H</span>: <em>“this person is the source.”</em> Evidence <span class='term t-like'>E</span>: <em>“their DNA matches.”</em> Absent other leads, the prior is roughly one in the 5-million pool.",
+         plug:[["prior","P(H)","1 in 5M"],["like","P(E | H)","~100%"],["like2","P(E | ¬H)","1 in 1M"]],
+         after:"The famous “1 in a million” is <span class='c-like'>P(E | ¬H)</span> — the chance an innocent person matches. It is <em>not</em> the chance the defendant is innocent."},
+        {k:"Count the crowd",h:"How many innocents would match?",
+         html:"Count the matches directly:",
+         nf:"In a pool of 5 million, an innocent-match rate of 1 in a million yields about 5 people who match by pure chance — plus, presumably, the 1 true source. So roughly 6 people match, and only 1 is guilty. The match alone points to this defendant with probability near 1 in 6, not 999,999 in a million."},
+        {k:"Run the theorem",h:"Plug into Bayes",
+         html:"Formally:",
+         eq:true},
+        {k:"The result",h:"A match is a lead, not a verdict",
+         html:"On its own, a database match of this quality leaves the probability of guilt at only around <strong>17%</strong>. That's why DNA is powerful <em>in combination</em> with other evidence that raises the prior — a suspect already placed at the scene starts from a far higher prior, and then the same match becomes overwhelming. The number didn't change; the prior did.",
+         meter:true}
+      ]
+    }
+  ];
+
+  function eqHTML(prior,like,fa){
+    var post=bayes(prior,like,fa);
+    function f(x){return (x*100).toFixed(x<0.01?4:(x<0.1?2:1));}
+    return '<div class="calc-eq" style="text-align:center">'+
+      '<span class="c-post">P(H|E)</span> = '+
+      '<span class="frac" style="display:inline-flex"><span class="num"><span class="c-like">'+f(like)+'</span>·<span class="c-prior">'+f(prior)+'</span></span>'+
+      '<span class="den"><span class="c-like">'+f(like)+'</span>·<span class="c-prior">'+f(prior)+'</span> + <span class="c-like">'+f(fa)+'</span>·<span class="c-prior">'+f(1-prior)+'</span></span></span>'+
+      ' = <b class="c-post">'+pct(post)+'</b></div>';
+  }
+
+  function buildExample(ex){
+    var wrapEl=document.createElement("div");
+    wrapEl.className="module stepper";
+    wrapEl.setAttribute("data-id",ex.id);
+    var post=bayes(ex.prior,ex.like,ex.fa);
+
+    var slides=ex.steps.map(function(s,i){
+      var body='<div class="step-kicker">'+s.k+'</div><h4>'+s.h+'</h4><p>'+s.html+'</p>';
+      if(s.plug){
+        body+='<div class="plug">'+s.plug.map(function(p){
+          var cls=p[0]==="prior"?"prior":(p[0]==="evid"?"evid":"like");
+          return '<div class="chip '+cls+'"><span class="k">'+p[1]+'</span><span class="v">'+p[2]+'</span></div>';
+        }).join("")+'</div>';
+        if(s.after) body+='<p>'+s.after+'</p>';
+      }
+      if(s.nf){
+        body+='<div class="nf"><div class="h">Natural frequencies</div><p style="margin:0">'+s.nf+'</p></div>';
+      }
+      if(s.eq){
+        body+='<div class="eq-wrap" style="margin:1em 0 0">'+eqHTML(ex.prior,ex.like,ex.fa)+'</div>';
+      }
+      if(s.meter){
+        body+='<div class="meter" data-meter="1"></div>';
+      }
+      return '<div class="step-slide'+(i===0?' active':'')+'" data-slide="'+i+'">'+body+'</div>';
+    }).join("");
+
+    wrapEl.innerHTML=
+      '<div class="module-head"><h3>'+ex.title+'</h3><span class="tag">'+ex.tag+'</span></div>'+
+      '<div class="module-body">'+
+        '<div class="step-nav">'+
+          '<button class="step-btn prev" disabled>‹ Back</button>'+
+          '<button class="step-btn next">Next ›</button>'+
+          '<div class="step-dots">'+ex.steps.map(function(_,i){return '<button data-dot="'+i+'"'+(i===0?' class="active"':'')+' aria-label="step '+(i+1)+'"></button>';}).join("")+'</div>'+
+          '<span class="step-count">1 / '+ex.steps.length+'</span>'+
+        '</div>'+
+        '<div class="step-panel">'+slides+'</div>'+
+      '</div>';
+
+    // wire up
+    var cur=0, total=ex.steps.length;
+    var prevBtn=wrapEl.querySelector(".prev"), nextBtn=wrapEl.querySelector(".next");
+    var dots=[].slice.call(wrapEl.querySelectorAll("[data-dot]"));
+    var slidesEl=[].slice.call(wrapEl.querySelectorAll(".step-slide"));
+    var count=wrapEl.querySelector(".step-count");
+    function go(n){
+      cur=Math.max(0,Math.min(total-1,n));
+      slidesEl.forEach(function(sl,i){sl.classList.toggle("active",i===cur);});
+      dots.forEach(function(d,i){d.classList.toggle("active",i===cur);});
+      prevBtn.disabled=cur===0; nextBtn.disabled=cur===total-1;
+      count.textContent=(cur+1)+" / "+total;
+      // render meter if this slide has one
+      var m=slidesEl[cur].querySelector("[data-meter]");
+      if(m && !m.getAttribute("data-done")){ renderMeter(m,ex.prior,post); m.setAttribute("data-done","1"); }
+    }
+    prevBtn.addEventListener("click",function(){go(cur-1);});
+    nextBtn.addEventListener("click",function(){go(cur+1);});
+    dots.forEach(function(d,i){d.addEventListener("click",function(){go(i);});});
+    return wrapEl;
+  }
+
+  var mount=$("#examplesMount");
+  examples.forEach(function(ex){ mount.appendChild(buildExample(ex)); });
+
+  /* ============================================================
+     CALCULATOR
+     ============================================================ */
+  var cPrior=$("#cPrior"), cLike=$("#cLike"), cFalse=$("#cFalse");
+  var oPrior=$("#oPrior"), oLike=$("#oLike"), oFalse=$("#oFalse");
+  var calcEq=$("#calcEq"), calcBig=$("#calcBig"), calcMeter=$("#calcMeter"), calcNF=$("#calcNF");
+  var presets=[].slice.call(document.querySelectorAll(".preset"));
+
+  function fmtInput(v){ v=parseFloat(v); if(v>=10)return v.toFixed(0); if(v>=1)return v.toFixed(1); return v.toFixed(2); }
+
+  function updateCalc(animate){
+    var prior=parseFloat(cPrior.value)/100, like=parseFloat(cLike.value)/100, fa=parseFloat(cFalse.value)/100;
+    oPrior.textContent=fmtInput(cPrior.value)+"%";
+    oLike.textContent=fmtInput(cLike.value)+"%";
+    oFalse.textContent=fmtInput(cFalse.value)+"%";
+    var post=bayes(prior,like,fa);
+
+    function f(x){return (x*100)>=10?(x*100).toFixed(1):(x*100).toFixed(2);}
+    calcEq.innerHTML=
+      '<div style="text-align:center;margin-bottom:6px"><span class="c-post">P(H|E)</span> =</div>'+
+      '<div style="text-align:center"><span class="frac" style="display:inline-flex">'+
+        '<span class="num"><span class="c-like">'+f(like)+'</span> · <span class="c-prior">'+f(prior)+'</span></span>'+
+        '<span class="den"><span class="c-like">'+f(like)+'</span>·<span class="c-prior">'+f(prior)+'</span> + <span class="c-like">'+f(fa)+'</span>·<span class="c-prior">'+f(1-prior)+'</span></span>'+
+      '</span></div>';
+
+    calcBig.textContent=pct(post);
+    renderMeter(calcMeter,prior,post);
+
+    // natural-frequency restatement, per 10,000 to keep integers reasonable
+    var M=10000;
+    var hyp=Math.round(M*prior), notHyp=M-hyp;
+    var hitH=Math.round(hyp*like), hitNot=Math.round(notHyp*fa);
+    var totalHit=hitH+hitNot;
+    calcNF.innerHTML='<div class="h">Picture 10,000 cases</div>'+
+      '<p style="margin:0">About <b class="c-prior">'+hyp.toLocaleString()+'</b> fit the hypothesis; the evidence shows up for <b class="c-like">'+hitH.toLocaleString()+'</b> of them. '+
+      'Among the <b>'+notHyp.toLocaleString()+'</b> that don\'t, the same evidence still appears for <b class="c-like">'+hitNot.toLocaleString()+'</b>. '+
+      (totalHit>0
+        ? 'So of the <b>'+totalHit.toLocaleString()+'</b> cases showing the evidence, <b class="c-post">'+hitH.toLocaleString()+'</b> truly fit — that\'s the posterior, <b class="c-post">'+pct(post)+'</b>.'
+        : 'At these settings the evidence essentially never appears.')+'</p>';
+  }
+  [cPrior,cLike,cFalse].forEach(function(el){el.addEventListener("input",function(){
+    presets.forEach(function(p){p.classList.remove("active");});
+    updateCalc(true);
+  });});
+  presets.forEach(function(btn){
+    btn.addEventListener("click",function(){
+      presets.forEach(function(p){p.classList.remove("active");});
+      btn.classList.add("active");
+      cPrior.value=btn.getAttribute("data-p");
+      cLike.value=btn.getAttribute("data-l");
+      cFalse.value=btn.getAttribute("data-f");
+      updateCalc(true);
+    });
+  });
+  updateCalc(false);
+
+})();
+</script>
+</body>
+</html>
